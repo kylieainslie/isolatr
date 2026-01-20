@@ -2,7 +2,7 @@ Package: isolatr
 Title: Simulate and Evaluate Quarantine Testing Strategies for COVID-19
 Version: 0.0.0.9000
 Authors@R: 
-    person("Kylie", "Ainslie", , "k.ainslie@unimelb.edu.au", role = c("aut", "cre"),
+    person("Kylie", "Ainslie", , "kylie.ainslie@unimelb.edu.au", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5419-7206"))
 Description: Provides tools for simulating COVID-19 transmission dynamics during
     quarantine and evaluating the effectiveness of different testing strategies.
@@ -23,4 +23,4 @@ LazyData: true
 NeedsCompilation: no
 Packaged: 2026-01-20 18:52:03 UTC; kainslie
 Author: Kylie Ainslie [aut, cre] (ORCID: YOUR-ORCID-ID)
-Maintainer: Kylie Ainslie <k.ainslie@unimelb.edu.au>
+Maintainer: Kylie Ainslie <kylie.ainslie@unimelb.edu.au>

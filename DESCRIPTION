@@ -2,7 +2,7 @@ Package: isolatr
 Title: Simulate and Evaluate Quarantine Testing Strategies for COVID-19
 Version: 0.0.0.9000
 Authors@R: c(
-    person("Kylie", "Ainslie", , "k.ainslie@unimelb.edu.au", role = c("aut", "cre"),
+    person("Kylie", "Ainslie", , "kylie.ainslie@unimelb.edu.au", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID")),
     person("David", "Price", role = "aut",
            comment = c(ORCID = "0000-0003-0076-3123")),
