@@ -1,16 +1,32 @@
 Package: isolatr
-Title: Analyses Quarantine Testing Strategies
+Title: Simulate and Evaluate Quarantine Testing Strategies for COVID-19
 Version: 0.0.0.9000
-Authors@R: 
-    person("Kylie", "Ainslie", , "first.last@example.com", role = c("aut", "cre"))
-Description: This package does stuff
+Authors@R:
+    person("Kylie", "Ainslie", , "k.ainslie@unimelb.edu.au", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Provides tools for simulating COVID-19 transmission dynamics during
+    quarantine and evaluating the effectiveness of different testing strategies.
+    The package implements a stochastic simulation model that accounts for household
+    structure, vaccination status, isolation timing, and various Test-Trace-Isolate-Quarantine
+    (TTIQ) scenarios. It enables users to compare testing schedules and quantify their
+    impact on reducing onwards transmission from quarantined individuals.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-Imports: 
-    dplyr
-Suggests: 
+Depends:
+    R (>= 3.5.0)
+Imports:
+    dplyr (>= 1.0.0),
+    tidyr (>= 1.0.0),
+    purrr (>= 0.3.0),
+    stats
+Suggests:
+    ggplot2,
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
+URL: https://github.com/kylieainslie/isolatr
+BugReports: https://github.com/kylieainslie/isolatr/issues
+LazyData: true
