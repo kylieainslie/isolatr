@@ -33,6 +33,8 @@ knitr::opts_chunk$set(
 
 The primary use case is comparing different testing schedules (e.g., test on days 1, 3, and 6 vs. days 2 and 7) to determine which most effectively reduces onwards transmission from quarantined individuals.
 
+**Important:** All datasets included in this package are **synthetic**. They are designed to match the structure and statistical properties of real epidemiological data but contain no actual observational data.
+
 ## Installation
 
 You can install the development version of isolatr from GitHub:
@@ -41,6 +43,14 @@ You can install the development version of isolatr from GitHub:
 # install.packages("devtools")
 devtools::install_github("kylieainslie/isolatr")
 ```
+
+After installation, you may need to generate the synthetic datasets:
+
+```r
+source(system.file("data-raw/create_synthetic_data.R", package = "isolatr"))
+```
+
+Or if installing from source, run `source("setup_package.R")` from the package directory.
 
 ## Quick Start
 
