@@ -22,7 +22,7 @@ Cumulative distribution function for time to interview index cases under
 optimal conditions.
 }
 \details{
-Used for inverse transform sampling in \code{\link{other.delay.samp}}.
+Used for inverse transform sampling in internal delay functions.
 Fast interviews with median ~0.5 days.
 }
 \keyword{datasets}

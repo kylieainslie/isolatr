@@ -25,7 +25,7 @@
 #' }
 #'
 #' @details
-#' This synthetic dataset is used by \code{\link{hhsizes}} and \code{\link{samp.hh.size}}
+#' This synthetic dataset is used by internal functions
 #' to sample realistic household sizes when simulating quarantine scenarios.
 #'
 #' The proportions are probability mass functions (sum to 1.0 for each state).
@@ -63,9 +63,8 @@
 #'   \item{current_nsw_case_init}{NSW baseline performance (case-initiated tracing)}
 #' }
 #'
-#' This dataset is sampled by various detection functions including
-#' \code{\link{passive.detection}}, \code{\link{active.detection.only}}, and
-#' \code{\link{iso.time.samp}}.
+#' This dataset is sampled by internal detection and timing functions
+#' when modeling quarantine scenarios.
 #'
 #' @source Synthetic data generated from lognormal distributions with scenario-specific parameters
 #' @examples
@@ -88,7 +87,7 @@
 #'
 #' @details
 #' Represents fast testing with most results returned within 1 day. Used by
-#' \code{\link{test.turnaround.samp}} when scenario is "optimal".
+#' internal sampling functions when scenario is "optimal".
 #'
 #' @source Synthetic data generated from gamma distribution
 #' @examples
@@ -105,7 +104,7 @@
 #'
 #' @details
 #' Represents moderate testing delays with median around 2 days. Used by
-#' \code{\link{test.turnaround.samp}} when scenario is "partial".
+#' internal sampling functions when scenario is "partial".
 #'
 #' @source Synthetic data generated from gamma distribution
 #' @examples
@@ -120,7 +119,7 @@
 #'
 #' @details
 #' Represents NSW case-initiated testing performance with median around 1.5-2 days.
-#' Used by \code{\link{test.turnaround.samp}} when scenario is "current_nsw_case_init".
+#' Used by internal sampling functions when scenario is "current_nsw_case_init".
 #'
 #' @source Synthetic data generated from gamma distribution
 #' @examples
@@ -139,7 +138,7 @@
 #' }
 #'
 #' @details
-#' Used for inverse transform sampling in \code{\link{other.delay.samp}}.
+#' Used for inverse transform sampling in internal delay functions.
 #' Fast interviews with median ~0.5 days.
 #'
 #' @source Synthetic data from exponential CDF

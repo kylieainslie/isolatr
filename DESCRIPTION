@@ -27,7 +27,6 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
-VignetteBuilder: knitr
 URL: https://github.com/kylieainslie/isolatr
 BugReports: https://github.com/kylieainslie/isolatr/issues
 LazyData: true

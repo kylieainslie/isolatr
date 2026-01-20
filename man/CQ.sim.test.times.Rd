@@ -39,7 +39,7 @@ given the testing regime.
 This function models the impact of a testing schedule on transmission during quarantine.
 For each index case, it:
 \enumerate{
-\item Determines the time of first positive test using \code{\link{testing.function2}}
+\item Determines the time of first positive test using an internal testing function
 \item Adds test turnaround time and other delays (interview, notification)
 \item Filters secondary infections that occur before detection
 \item Calculates infection potential for each undetected case
@@ -82,7 +82,7 @@ print(evaluation)
 
 }
 \seealso{
-\code{\link{CQ.sim2}}, \code{\link{CQ.sim.notest}}, \code{\link{testing.function2}}
+\code{\link{CQ.sim2}}, \code{\link{CQ.sim.notest}}
 
 Other simulation functions: 
 \code{\link{CQ.sim.notest}()},

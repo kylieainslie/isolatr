@@ -9,3 +9,5 @@
 ^PACKAGE_IMPROVEMENTS_SUMMARY\.md$
 ^ROXYGEN_DOCUMENTATION_GUIDE\.R$
 ^\.github$
+^\.claude$
+^vignettes$

@@ -33,9 +33,8 @@ Three scenarios are included:
 \item{current_nsw_case_init}{NSW baseline performance (case-initiated tracing)}
 }
 
-This dataset is sampled by various detection functions including
-\code{\link{passive.detection}}, \code{\link{active.detection.only}}, and
-\code{\link{iso.time.samp}}.
+This dataset is sampled by internal detection and timing functions
+when modeling quarantine scenarios.
 }
 \examples{
 # Compare median detection times across scenarios

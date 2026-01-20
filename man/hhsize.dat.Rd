@@ -32,7 +32,7 @@ for each Australian state and territory. Based on the structure of Australian
 census data but containing synthetic values.
 }
 \details{
-This synthetic dataset is used by \code{\link{hhsizes}} and \code{\link{samp.hh.size}}
+This synthetic dataset is used by internal functions
 to sample realistic household sizes when simulating quarantine scenarios.
 
 The proportions are probability mass functions (sum to 1.0 for each state).

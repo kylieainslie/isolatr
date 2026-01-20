@@ -56,7 +56,7 @@
 #' print(baseline)
 #' }
 #'
-#' @seealso \code{\link{CQ.sim2}}, \code{\link{CQ.sim.test.times}}, \code{\link{passive.detection.only}}
+#' @seealso \code{\link{CQ.sim2}}, \code{\link{CQ.sim.test.times}}
 #' @family simulation functions
 #' @importFrom dplyr %>% group_by ungroup mutate filter summarise
 #' @export

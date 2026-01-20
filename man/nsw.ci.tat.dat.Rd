@@ -18,7 +18,7 @@ Synthetic data representing test turnaround times under NSW baseline conditions.
 }
 \details{
 Represents NSW case-initiated testing performance with median around 1.5-2 days.
-Used by \code{\link{test.turnaround.samp}} when scenario is "current_nsw_case_init".
+Used by internal sampling functions when scenario is "current_nsw_case_init".
 }
 \examples{
 summary(nsw.ci.tat.dat)

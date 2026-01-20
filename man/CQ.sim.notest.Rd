@@ -70,7 +70,7 @@ print(baseline)
 
 }
 \seealso{
-\code{\link{CQ.sim2}}, \code{\link{CQ.sim.test.times}}, \code{\link{passive.detection.only}}
+\code{\link{CQ.sim2}}, \code{\link{CQ.sim.test.times}}
 
 Other simulation functions: 
 \code{\link{CQ.sim.test.times}()},

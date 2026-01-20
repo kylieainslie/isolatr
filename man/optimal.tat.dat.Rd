@@ -19,7 +19,7 @@ result notification) under optimal TTIQ conditions.
 }
 \details{
 Represents fast testing with most results returned within 1 day. Used by
-\code{\link{test.turnaround.samp}} when scenario is "optimal".
+internal sampling functions when scenario is "optimal".
 }
 \examples{
 # Summary statistics

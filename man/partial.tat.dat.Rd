@@ -18,7 +18,7 @@ Synthetic data representing test turnaround times under moderate delay condition
 }
 \details{
 Represents moderate testing delays with median around 2 days. Used by
-\code{\link{test.turnaround.samp}} when scenario is "partial".
+internal sampling functions when scenario is "partial".
 }
 \examples{
 summary(partial.tat.dat)
