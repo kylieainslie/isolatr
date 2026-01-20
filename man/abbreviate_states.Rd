@@ -2,16 +2,46 @@
 % Please edit documentation in R/abbreviate_states.R
 \name{abbreviate_states}
 \alias{abbreviate_states}
-\title{Abbreviate Australian state names to standard abbreviations}
+\title{Abbreviate Australian state and territory names}
 \usage{
 abbreviate_states(state_names)
 }
 \arguments{
-\item{state_names}{character string; Name of Australian State}
+\item{state_names}{A character vector of Australian state or territory names.
+Can be either full names (e.g., "New South Wales") or abbreviations (e.g., "NSW").}
 }
 \value{
-converted state names
+A character vector of abbreviated state/territory names. Returns NA for
+unrecognized state names.
 }
 \description{
-Converts full state/territory names (e.g., "New South Wales") to short codes (e.g., "NSW")
+Converts full Australian state and territory names to their standard abbreviations.
+The function accepts both full names and abbreviations as input and returns
+abbreviations. This is useful for standardizing state names in datasets.
 }
+\details{
+Recognized states and territories:
+\itemize{
+\item Australian Capital Territory (ACT)
+\item New South Wales (NSW)
+\item Northern Territory (NT)
+\item Queensland (QLD)
+\item South Australia (SA)
+\item Tasmania (TAS)
+\item Victoria (VIC)
+\item Western Australia (WA)
+}
+}
+\examples{
+abbreviate_states("New South Wales")
+# Returns: "NSW"
+
+abbreviate_states(c("Victoria", "Queensland", "NSW"))
+# Returns: c("VIC", "QLD", "NSW")
+
+}
+\seealso{
+Other state helper functions: 
+\code{\link{unabbreviate_states}()}
+}
+\concept{state helper functions}
