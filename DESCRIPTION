@@ -1,9 +1,12 @@
 Package: isolatr
 Title: Simulate and Evaluate Quarantine Testing Strategies for COVID-19
 Version: 0.0.0.9000
-Authors@R:
+Authors@R: c(
     person("Kylie", "Ainslie", , "k.ainslie@unimelb.edu.au", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+           comment = c(ORCID = "YOUR-ORCID-ID")),
+    person("David", "Price", role = "aut"),
+    person("Joshua", "Ross", role = "aut")
+    )
 Description: Provides tools for simulating COVID-19 transmission dynamics during
     quarantine and evaluating the effectiveness of different testing strategies.
     The package implements a stochastic simulation model that accounts for household
