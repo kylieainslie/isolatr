@@ -233,9 +233,11 @@ If you use this package in your research, please cite:
 
 ## Related Work
 
-This package implements methods described in:
+<!-- This package implements methods described in:
 
 > \[Ainslie et al. (2023). Title of paper. *Journal Name*. DOI link\]
+
+-->
 
 For more on quarantine testing strategies, see:
 
