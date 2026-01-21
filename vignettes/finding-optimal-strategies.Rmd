@@ -19,11 +19,13 @@ knitr::opts_chunk$set(
 
 ## Introduction
 
-This vignette demonstrates a complete workflow for systematically evaluating and identifying optimal testing strategies for quarantined individuals. The methods shown here are based on the analysis scripts in `inst/examples/` and illustrate how to:
+This vignette demonstrates a complete workflow for systematically evaluating and identifying optimal testing strategies for isolated individuals. While we use COVID-19 parameters as an example, the methods apply to any infectious disease.
+
+The workflow shows how to:
 
 1. Generate all possible testing schedules within constraints
 2. Evaluate each schedule in parallel for computational efficiency
-3. Identify optimal schedules for different scenarios and quarantine durations
+3. Identify optimal schedules for different scenarios and isolation durations
 4. Visualize and compare results
 
 This approach allows policy-makers to balance test resources against transmission reduction.
@@ -41,15 +43,15 @@ library(doParallel)
 
 ## Define Simulation Parameters
 
-First, define the epidemiological and intervention parameters:
+First, define the epidemiological and intervention parameters. This example uses COVID-19 parameters, but these can be adjusted for other diseases.
 
 ```{r parameters}
-# Epidemiological parameters
+# Epidemiological parameters (COVID-19 example)
 n.ind <- 100000  # Large sample for stable estimates
 TP <- 1.2        # Transmission potential
 k <- 0.2         # Dispersion parameter (superspreading)
 
-# Vaccination parameters (NSW example)
+# Vaccination parameters
 p.vac.idx <- 0.723   # Index case vaccination probability
 p.vac.sc <- 0.723    # Secondary case vaccination probability
 vacc.cor <- 0.9      # Household vaccination correlation
@@ -58,14 +60,36 @@ vacc.cor <- 0.9      # Household vaccination correlation
 VE.trans <- 0.4      # Against transmission
 VE.inf <- 0.72       # Against infection
 
-# State
-the.state <- "NSW"
+# Region for household sizes (or use hh_probs for custom)
+region <- "NSW"
+
+# Epidemiological distributions (COVID-19 defaults)
+# For other diseases, adjust these:
+inc_meanlog <- 1.63   # Incubation period meanlog
+inc_sdlog <- 0.5      # Incubation period sdlog
+gi_meanlog <- 1.376   # Generation interval meanlog
+gi_sdlog <- 0.567     # Generation interval sdlog
 
 # TTIQ scenarios to evaluate
-the.scenarios <- c("optimal", "partial", "current_nsw_case_init")
+the.scenarios <- c("optimal", "partial", "baseline")
 
-# Quarantine durations to evaluate
+# Isolation durations to evaluate
 quarantine.durations <- c(14, 7)
+```
+
+### Adapting for Other Diseases
+
+To evaluate testing strategies for influenza or another disease, modify the parameters:
+
+```{r influenza_params, eval=FALSE}
+# Influenza example
+TP <- 1.5
+k <- 0.5
+inc_meanlog <- 0.34    # ~1.4 day median
+inc_sdlog <- 0.42
+gi_meanlog <- 0.91     # ~2.5 day median
+gi_sdlog <- 0.52
+quarantine.durations <- c(7, 5)  # Shorter isolation
 ```
 
 ## Generate Testing Schedules
@@ -120,7 +144,7 @@ print(paste("Evaluating", nn, "testing schedules"))
 
 ## Run Simulations for Each Scenario
 
-Now we loop over quarantine durations and TTIQ scenarios, evaluating all testing schedules in parallel:
+Now we loop over isolation durations and TTIQ scenarios, evaluating all testing schedules in parallel:
 
 ```{r run_simulations}
 results_list <- list()
@@ -128,9 +152,9 @@ results_list <- list()
 for (hq.d in quarantine.durations) {
   for (ts in the.scenarios) {
 
-    cat(paste("\nEvaluating", ts, "scenario with", hq.d, "day quarantine\n"))
+    cat(paste("\nEvaluating", ts, "scenario with", hq.d, "day isolation\n"))
 
-    # For 7-day quarantine, filter out schedules that extend beyond day 7
+    # For 7-day isolation, filter out schedules that extend beyond day 7
     if (hq.d == 7 && ncol(all.times) == 3) {
       all.times_filtered <- all.times %>%
         select(-Var3) %>%
@@ -154,7 +178,11 @@ for (hq.d in quarantine.durations) {
       VE.inf = VE.inf,
       quarantine.duration = hq.d,
       the.scenario = ts,
-      the.state = the.state
+      region = region,
+      inc_meanlog = inc_meanlog,
+      inc_sdlog = inc_sdlog,
+      gi_meanlog = gi_meanlog,
+      gi_sdlog = gi_sdlog
     )
 
     # Step 2: Evaluate all testing schedules in parallel
@@ -172,8 +200,11 @@ for (hq.d in quarantine.durations) {
         CQ.sim.output = CQ.output,
         n.ind = n.ind,
         test.times = all.times_filtered[i, ] %>% as.numeric(),
+        TP = TP,
         VE.trans = VE.trans,
-        the.scenario = ts
+        the.scenario = ts,
+        gi_meanlog = gi_meanlog,
+        gi_sdlog = gi_sdlog
       )
     }
 
@@ -240,8 +271,8 @@ optimal_schedules %>%
   mutate(
     scenario = factor(
       scenario,
-      levels = c("optimal", "current_nsw_case_init", "partial"),
-      labels = c("Optimal delays", "NSW case-initiated delays", "Partial delays"),
+      levels = c("optimal", "baseline", "partial"),
+      labels = c("Optimal delays", "Baseline delays", "Partial delays"),
       ordered = TRUE
     )
   ) %>%
@@ -257,7 +288,7 @@ optimal_schedules %>%
   aes(x = TT, y = IPq, fill = as.factor(n.tests)) +
   geom_col(position = position_dodge(preserve = "single")) +
   scale_x_discrete("Test Strategy") +
-  scale_y_continuous("IPq (Infection Potential in Quarantine)") +
+  scale_y_continuous("IPq (Infection Potential in Isolation)") +
   scale_fill_discrete("Number of Tests") +
   facet_grid(q.duration ~ scenario, scales = "free_x") +
   theme_minimal() +
@@ -320,7 +351,7 @@ all_results %>%
     colour = "black"
   ) +
   scale_y_continuous("IPq") +
-  scale_x_continuous("Test day for PCC", breaks = seq(1, 14, by = 1)) +
+  scale_x_continuous("Test day", breaks = seq(1, 14, by = 1)) +
   facet_grid(q.duration ~ .) +
   scale_colour_manual(
     "Test Number",
@@ -367,15 +398,16 @@ From this systematic evaluation, we can derive several insights:
 2. **Test spacing matters**: Tests should be strategically spaced to capture infections at different stages
 3. **Diminishing returns**: Adding a 3rd test provides smaller marginal benefit than adding a 2nd
 4. **Robustness**: Multiple schedules often perform nearly as well as the single optimum
+5. **Disease-specific**: Optimal timing depends on incubation period and generation interval
 
-## Comparing Different Quarantine Policies
+## Comparing Different Isolation Policies
 
-You can extend this framework to compare alternative policies, such as differential quarantine by vaccination status:
+You can extend this framework to compare alternative policies, such as differential isolation by vaccination status:
 
 ```{r differential_policy, eval=FALSE}
-# Example: 7-day quarantine for vaccinated, 14-day for unvaccinated
+# Example: 7-day isolation for vaccinated, 14-day for unvaccinated
 # This requires running separate simulations for each group
-# See inst/examples/runCq_7unv_14v_quarantine.R for full implementation
+# See inst/examples/ for full implementation
 ```
 
 ## Exporting Results
@@ -405,7 +437,26 @@ For large-scale evaluations:
 - **Number of schedules**: Grows combinatorially with max days and tests
 - **Memory**: Each simulation stores detailed secondary infection data
 
-Typical runtime: ~30-60 minutes for complete analysis (all scenarios × durations) with 4 cores.
+Typical runtime: ~30-60 minutes for complete analysis (all scenarios x durations) with 4 cores.
+
+## Adapting for Other Diseases
+
+The key considerations when adapting this analysis for other diseases:
+
+1. **Adjust epidemiological parameters**: incubation period, generation interval
+2. **Modify isolation durations**: shorter for diseases with faster dynamics
+3. **Update test sensitivity**: different tests have different performance curves
+4. **Consider transmission patterns**: diseases with less household transmission may need different strategies
+
+### Example: Influenza Analysis
+
+```{r influenza_analysis, eval=FALSE}
+# Run the same workflow with influenza parameters
+# Key changes:
+# - Shorter isolation periods (5-7 days)
+# - Earlier optimal test times (due to shorter generation interval)
+# - Consider rapid antigen test performance
+```
 
 ## Next Steps
 
@@ -415,9 +466,12 @@ Typical runtime: ~30-60 minutes for complete analysis (all scenarios × duration
 
 ## References
 
-This workflow is based on:
+This workflow can be applied to:
 
-> [Citation to paper describing the optimization approach]
+- Pandemic preparedness planning
+- Real-time policy evaluation during outbreaks
+- Comparing testing strategies across different diseases
+- Optimizing resource allocation for testing programs
 
 For parallel computing in R:
 > `?foreach`, `?doParallel`
