@@ -46,14 +46,6 @@ You can install the development version of isolatr from GitHub:
 devtools::install_github("kylieainslie/isolatr")
 ```
 
-After installation, you may need to generate the synthetic datasets:
-
-```r
-source(system.file("data-raw/create_synthetic_data.R", package = "isolatr"))
-```
-
-Or if installing from source, run `source("setup_package.R")` from the package directory.
-
 ## Quick Start
 
 ### Basic Simulation
