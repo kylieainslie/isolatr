@@ -1,0 +1,241 @@
+# isolatr
+
+## Overview
+
+**isolatr** provides tools for simulating COVID-19 transmission dynamics
+during quarantine and evaluating the effectiveness of different testing
+strategies. The package implements a stochastic simulation model that
+accounts for:
+
+- **Household structure** - State-specific household size distributions
+- **Vaccination status** - Individual and household-level vaccination
+  with correlated outcomes
+- **Isolation timing** - Scenario-based active and passive detection
+  delays
+- **Testing strategies** - Flexible testing schedules with realistic
+  test sensitivity curves
+- **TTIQ scenarios** - Multiple Test-Trace-Isolate-Quarantine
+  performance levels
+
+The primary use case is comparing different testing schedules (e.g.,
+test on days 1, 3, and 6 vs. days 2 and 7) to determine which most
+effectively reduces onwards transmission from quarantined individuals.
+
+**Important:** All datasets included in this package are **synthetic**.
+They are designed to match the structure and statistical properties of
+real epidemiological data but contain no actual observational data.
+
+## Installation
+
+You can install the development version of isolatr from GitHub:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("kylieainslie/isolatr")
+```
+
+After installation, you may need to generate the synthetic datasets:
+
+``` r
+source(system.file("data-raw/create_synthetic_data.R", package = "isolatr"))
+```
+
+Or if installing from source, run `source("setup_package.R")` from the
+package directory.
+
+## Quick Start
+
+### Basic Simulation
+
+``` r
+library(isolatr)
+library(dplyr)
+
+# Set seed for reproducibility
+set.seed(42)
+
+# Simulate 1000 index cases under optimal TTIQ conditions
+sim_results <- CQ.sim2(
+  n.ind = 1000,                  # Number of index cases
+  TP = 3.0,                      # Transmission potential (mean secondary cases)
+  k = 0.25,                      # Dispersion parameter (lower = more superspreading)
+  p.vac.idx = 0.7,               # Probability index case is vaccinated
+  p.vac.sc = 0.7,                # Probability secondary cases are vaccinated
+  vacc.cor = 0.8,                # Household vaccination correlation
+  VE.trans = 0.5,                # Vaccine effectiveness against transmission
+  VE.inf = 0.7,                  # Vaccine effectiveness against infection
+  quarantine.duration = 14,      # Quarantine length (days)
+  the.scenario = "optimal",      # TTIQ scenario
+  the.state = "NSW"              # State (for household sizes)
+)
+
+# Examine output
+head(sim_results)
+summary(sim_results$who)  # Distribution of infection types
+```
+
+### Evaluating a Testing Strategy
+
+``` r
+# Evaluate testing on days 1, 3, and 6 of quarantine
+test_strategy <- CQ.sim.test.times(
+  CQ.sim.output = sim_results,
+  n.ind = 1000,
+  test.times = c(1, 3, 6),      # Test schedule
+  VE.trans = 0.5,
+  the.scenario = "optimal"
+)
+
+print(test_strategy)
+# Output shows:
+#   IPq: Infection Potential in Quarantine (lower is better)
+#   mean.cases: Mean undetected cases per index case
+```
+
+### Comparing Multiple Testing Strategies
+
+``` r
+# Define testing strategies to compare
+strategies <- list(
+  "Day 1, 3, 6" = c(1, 3, 6),
+  "Day 2, 7" = c(2, 7),
+  "Day 1, 5, 10" = c(1, 5, 10),
+  "No testing" = NULL  # Baseline
+)
+
+# Evaluate each strategy
+results <- lapply(names(strategies), function(name) {
+  if (name == "No testing") {
+    out <- CQ.sim.notest(sim_results, n.ind = 1000, VE.trans = 0.5, the.scenario = "optimal")
+  } else {
+    out <- CQ.sim.test.times(sim_results, n.ind = 1000, test.times = strategies[[name]],
+                             VE.trans = 0.5, the.scenario = "optimal")
+  }
+  out$strategy <- name
+  return(out)
+})
+
+comparison <- bind_rows(results)
+print(comparison %>% arrange(IPq))
+```
+
+## Key Features
+
+### 1. Realistic Epidemiological Parameters
+
+The simulation uses distributions calibrated to Australian COVID-19
+data:
+
+- **Generation interval**: Lognormal(μ=1.376, σ=0.567) ≈ 3.96 day median
+- **Incubation period**: Lognormal(μ=1.63, σ=0.5) ≈ 5.1 day median
+- **Secondary cases**: Negative binomial with configurable transmission
+  potential and dispersion
+
+### 2. Flexible TTIQ Scenarios
+
+Three built-in scenarios representing different public health system
+performance:
+
+- **optimal**: Rapid contact tracing and testing
+- **partial**: Moderate delays
+- **current_nsw_case_init**: NSW baseline performance
+
+Each scenario has distinct distributions for isolation times, test
+turnaround, and notification delays.
+
+### 3. Household Transmission Modeling
+
+Uses Australian census data for realistic household size distributions
+by state. Models household-correlated vaccination status, reflecting
+empirical patterns.
+
+### 4. Test Sensitivity Dynamics
+
+Test sensitivity varies with viral load trajectory using a logistic
+function: - Increases pre-peak (before symptom onset) - Decreases
+post-peak (after symptom onset) - Accounts for timing of infection,
+incubation, and test administration
+
+## Model Details
+
+### Simulation Workflow
+
+1.  **Sample individual characteristics** for each index case:
+    - Vaccination status
+    - Incubation period
+    - Time to isolation
+    - Number of secondary cases (negative binomial)
+    - Household size (state-specific)
+2.  **Generate secondary infections**:
+    - Sample generation intervals from lognormal distribution
+    - Classify as pre-isolation, household, or post-quarantine
+    - Apply household correlation for vaccination
+    - Filter based on vaccine effectiveness
+3.  **Apply testing schedule**:
+    - Calculate test sensitivity at each time point
+    - Determine first positive test
+    - Add turnaround and notification delays
+    - Filter infections occurring before detection
+4.  **Calculate outcomes**:
+    - Infection Potential in Quarantine (IPq)
+    - Mean number of undetected cases
+    - Standard deviation across simulations
+
+### Key Metrics
+
+**Infection Potential in Quarantine (IPq)**: Expected number of tertiary
+infections from undetected secondary cases. Accounts for: - Generation
+interval distribution - Time remaining until detection - Transmission
+potential - Vaccine effectiveness
+
+Lower IPq indicates more effective quarantine and testing strategies.
+
+## Use Cases
+
+- **Policy evaluation**: Compare testing frequencies (e.g., daily
+  vs. every 3 days)
+- **Resource optimization**: Balance test usage against transmission
+  reduction
+- **Scenario planning**: Model impact of TTIQ system improvements
+- **Vaccine policy**: Assess differential strategies by vaccination
+  status
+- **Quarantine duration**: Evaluate shorter quarantine with testing
+
+## Citation
+
+If you use this package in your research, please cite:
+
+``` R
+Ainslie, K.E.C. et al. (2024). isolatr: Simulate and Evaluate Quarantine
+Testing Strategies for COVID-19. R package version 0.0.0.9000.
+https://github.com/kylieainslie/isolatr
+```
+
+## Getting Help
+
+- **Documentation**: Run [`?CQ.sim2`](reference/CQ.sim2.md) or
+  [`?CQ.sim.test.times`](reference/CQ.sim.test.times.md) for function
+  help
+- **Vignettes**: `browseVignettes("isolatr")` for detailed tutorials
+- **Issues**: Report bugs at
+  <https://github.com/kylieainslie/isolatr/issues>
+
+## Related Work
+
+For more on quarantine testing strategies, see:
+
+- [Wells et al. (2021)](https://doi.org/10.1016/S2468-2667(21)00083-2)
+- [Quilty et al. (2021)](https://doi.org/10.1016/S2468-2667(20)30308-X)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+MIT License - see LICENSE.md for details
+
+------------------------------------------------------------------------
+
+**Author**: Kylie Ainslie (University of Melbourne) **Maintainer**:
+<k.ainslie@unimelb.edu.au>

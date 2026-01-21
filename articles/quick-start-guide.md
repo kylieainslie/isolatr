@@ -1,0 +1,194 @@
+# Quick Start Guide
+
+``` r
+library(isolatr)
+library(dplyr)
+#> 
+#> Attaching package: 'dplyr'
+#> The following objects are masked from 'package:stats':
+#> 
+#>     filter, lag
+#> The following objects are masked from 'package:base':
+#> 
+#>     intersect, setdiff, setequal, union
+library(ggplot2)
+```
+
+## Introduction
+
+The **isolatr** package provides tools for simulating COVID-19
+transmission during quarantine and evaluating different testing
+strategies. This quick start guide will walk you through the basic
+workflow.
+
+## Basic Workflow
+
+The typical workflow consists of three steps:
+
+1.  **Simulate** transmission dynamics using
+    [`CQ.sim2()`](../reference/CQ.sim2.md)
+2.  **Evaluate** testing strategies using
+    [`CQ.sim.test.times()`](../reference/CQ.sim.test.times.md) or
+    [`CQ.sim.notest()`](../reference/CQ.sim.notest.md)
+3.  **Compare** results across different strategies
+
+### Step 1: Run the Simulation
+
+First, we simulate transmission from 1000 index cases (primary close
+contacts) under quarantine:
+
+``` r
+set.seed(42)  # For reproducibility
+
+sim_results <- CQ.sim2(
+  n.ind = 1000,                  # Number of index cases to simulate
+  TP = 3.0,                      # Transmission potential (mean secondary cases)
+  k = 0.25,                      # Dispersion (lower = more superspreading)
+  p.vac.idx = 0.7,               # Probability index case is vaccinated
+  p.vac.sc = 0.7,                # Probability secondary cases are vaccinated
+  vacc.cor = 0.8,                # Household vaccination correlation
+  VE.trans = 0.5,                # Vaccine effectiveness against transmission
+  VE.inf = 0.7,                  # Vaccine effectiveness against infection
+  quarantine.duration = 14,      # Quarantine period (days)
+  the.scenario = "optimal",      # TTIQ scenario
+  the.state = "NSW"              # Australian state
+)
+```
+
+The output is a data frame with one row per secondary infection:
+
+``` r
+head(sim_results)
+
+# Check infection types
+table(sim_results$who)
+```
+
+### Step 2: Evaluate a Testing Strategy
+
+Now we can evaluate how effective a specific testing schedule would be:
+
+``` r
+# Test on days 1, 3, and 6
+strategy_1 <- CQ.sim.test.times(
+  CQ.sim.output = sim_results,
+  n.ind = 1000,
+  test.times = c(1, 3, 6),
+  VE.trans = 0.5,
+  the.scenario = "optimal"
+)
+
+print(strategy_1)
+```
+
+The output shows: - **IPq**: Infection Potential in Quarantine (lower is
+better) - **sdIPq**: Standard deviation - **mean.cases**: Mean
+undetected cases per index case
+
+### Step 3: Compare Multiple Strategies
+
+Let’s compare several testing strategies:
+
+``` r
+# Define strategies
+strategies <- list(
+  "Days 1,3,6" = c(1, 3, 6),
+  "Days 2,7" = c(2, 7),
+  "Days 1,5,10" = c(1, 5, 10),
+  "Day 6 only" = 6
+)
+
+# Evaluate each
+results <- lapply(names(strategies), function(name) {
+  out <- CQ.sim.test.times(
+    CQ.sim.output = sim_results,
+    n.ind = 1000,
+    test.times = strategies[[name]],
+    VE.trans = 0.5,
+    the.scenario = "optimal"
+  )
+  out$strategy <- name
+  out$n_tests <- length(strategies[[name]])
+  return(out)
+})
+
+# Add no-testing baseline
+baseline <- CQ.sim.notest(sim_results, n.ind = 1000,
+                          VE.trans = 0.5, the.scenario = "optimal")
+baseline$strategy <- "No testing"
+baseline$n_tests <- 0
+
+# Combine and display
+comparison <- bind_rows(results, baseline)
+print(comparison %>% arrange(IPq))
+```
+
+## Understanding the Parameters
+
+### Epidemiological Parameters
+
+- **TP** (Transmission Potential): Mean number of secondary cases per
+  index case. Typical values: 1-5
+- **k** (Dispersion): Controls overdispersion. Lower values (0.1-0.3)
+  indicate more superspreading
+- **VE.trans**: Vaccine effectiveness against transmission (0-1)
+- **VE.inf**: Vaccine effectiveness against infection (0-1)
+
+### TTIQ Scenarios
+
+Three scenarios are available, representing different public health
+system performance:
+
+- **optimal**: Fast contact tracing, rapid testing, minimal delays
+- **partial**: Moderate delays in tracing and testing
+- **current_nsw_case_init**: NSW baseline performance
+
+Each scenario has different distributions for: - Time to isolation
+(contact tracing speed) - Test turnaround time - Interview and
+notification delays
+
+### State-Specific Parameters
+
+The `the.state` parameter determines the household size distribution.
+Valid options: - “NSW”, “VIC”, “QLD”, “SA”, “WA”, “TAS”, “NT”, “ACT” -
+Or full names: “New South Wales”, “Victoria”, etc.
+
+## Interpreting Results
+
+### Infection Potential in Quarantine (IPq)
+
+IPq represents the expected number of tertiary infections from
+undetected secondary cases. It accounts for: - How long infections
+remain undetected - Generation interval distribution - Transmission
+potential - Vaccine effectiveness
+
+**Lower IPq = more effective strategy**
+
+### Mean Cases
+
+The mean number of undetected secondary cases per index case. This
+complements IPq by showing the raw number of cases that escape
+detection.
+
+## Next Steps
+
+- See the **Model Details** vignette for in-depth explanation of the
+  simulation model
+- See the **Testing Strategies** vignette for systematic strategy
+  comparison methods
+- See the **Advanced Usage** vignette for customization and extensions
+
+## Quick Reference
+
+``` r
+# Basic simulation
+sim <- CQ.sim2(n.ind, TP, k, p.vac.idx, p.vac.sc, vacc.cor,
+               VE.trans, VE.inf, quarantine.duration,
+               the.scenario, the.state)
+
+# Evaluate testing
+results <- CQ.sim.test.times(sim, n.ind, test.times, VE.trans, the.scenario)
+
+# Evaluate no testing
+baseline <- CQ.sim.notest(sim, n.ind, VE.trans, the.scenario)
+```
