@@ -82,9 +82,12 @@
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
 <p>The <strong>isolatr</strong> package provides tools for simulating
-COVID-19 transmission during quarantine and evaluating different testing
-strategies. This quick start guide will walk you through the basic
-workflow.</p>
+infectious disease transmission during isolation/quarantine and
+evaluating different testing strategies. While the default parameters
+are calibrated to COVID-19, the package can be used for any communicable
+disease by adjusting the epidemiological parameters.</p>
+<p>This quick start guide walks you through the basic workflow using
+COVID-19 as an example.</p>
 </div>
 <div class="section level2">
 <h2 id="basic-workflow">Basic Workflow<a class="anchor" aria-label="anchor" href="#basic-workflow"></a>
@@ -106,10 +109,11 @@ workflow.</p>
 <h3 id="step-1-run-the-simulation">Step 1: Run the Simulation<a class="anchor" aria-label="anchor" href="#step-1-run-the-simulation"></a>
 </h3>
 <p>First, we simulate transmission from 1000 index cases (primary close
-contacts) under quarantine:</p>
+contacts) under isolation:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>  <span class="co"># For reproducibility</span></span>
 <span></span>
+<span><span class="co"># COVID-19 example with default epidemiological parameters</span></span>
 <span><span class="va">sim_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CQ.sim2.html">CQ.sim2</a></span><span class="op">(</span></span>
 <span>  n.ind <span class="op">=</span> <span class="fl">1000</span>,                  <span class="co"># Number of index cases to simulate</span></span>
 <span>  TP <span class="op">=</span> <span class="fl">3.0</span>,                      <span class="co"># Transmission potential (mean secondary cases)</span></span>
@@ -119,9 +123,9 @@ contacts) under quarantine:</p>
 <span>  vacc.cor <span class="op">=</span> <span class="fl">0.8</span>,                <span class="co"># Household vaccination correlation</span></span>
 <span>  VE.trans <span class="op">=</span> <span class="fl">0.5</span>,                <span class="co"># Vaccine effectiveness against transmission</span></span>
 <span>  VE.inf <span class="op">=</span> <span class="fl">0.7</span>,                  <span class="co"># Vaccine effectiveness against infection</span></span>
-<span>  quarantine.duration <span class="op">=</span> <span class="fl">14</span>,      <span class="co"># Quarantine period (days)</span></span>
+<span>  quarantine.duration <span class="op">=</span> <span class="fl">14</span>,      <span class="co"># Isolation period (days)</span></span>
 <span>  the.scenario <span class="op">=</span> <span class="st">"optimal"</span>,      <span class="co"># TTIQ scenario</span></span>
-<span>  the.state <span class="op">=</span> <span class="st">"NSW"</span>              <span class="co"># Australian state</span></span>
+<span>  region <span class="op">=</span> <span class="st">"NSW"</span>                 <span class="co"># Region for household size distribution</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>The output is a data frame with one row per secondary infection:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -141,6 +145,7 @@ be:</p>
 <span>  CQ.sim.output <span class="op">=</span> <span class="va">sim_results</span>,</span>
 <span>  n.ind <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  test.times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">6</span><span class="op">)</span>,</span>
+<span>  TP <span class="op">=</span> <span class="fl">3.0</span>,</span>
 <span>  VE.trans <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  the.scenario <span class="op">=</span> <span class="st">"optimal"</span></span>
 <span><span class="op">)</span></span>
@@ -170,6 +175,7 @@ case</p>
 <span>    CQ.sim.output <span class="op">=</span> <span class="va">sim_results</span>,</span>
 <span>    n.ind <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>    test.times <span class="op">=</span> <span class="va">strategies</span><span class="op">[[</span><span class="va">name</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>    TP <span class="op">=</span> <span class="fl">3.0</span>,</span>
 <span>    VE.trans <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>    the.scenario <span class="op">=</span> <span class="st">"optimal"</span></span>
 <span>  <span class="op">)</span></span>
@@ -179,7 +185,7 @@ case</p>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Add no-testing baseline</span></span>
-<span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CQ.sim.notest.html">CQ.sim.notest</a></span><span class="op">(</span><span class="va">sim_results</span>, n.ind <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CQ.sim.notest.html">CQ.sim.notest</a></span><span class="op">(</span><span class="va">sim_results</span>, n.ind <span class="op">=</span> <span class="fl">1000</span>, TP <span class="op">=</span> <span class="fl">3.0</span>,</span>
 <span>                          VE.trans <span class="op">=</span> <span class="fl">0.5</span>, the.scenario <span class="op">=</span> <span class="st">"optimal"</span><span class="op">)</span></span>
 <span><span class="va">baseline</span><span class="op">$</span><span class="va">strategy</span> <span class="op">&lt;-</span> <span class="st">"No testing"</span></span>
 <span><span class="va">baseline</span><span class="op">$</span><span class="va">n_tests</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
@@ -187,6 +193,73 @@ case</p>
 <span><span class="co"># Combine and display</span></span>
 <span><span class="va">comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="va">results</span>, <span class="va">baseline</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">comparison</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">IPq</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="using-custom-disease-parameters">Using Custom Disease Parameters<a class="anchor" aria-label="anchor" href="#using-custom-disease-parameters"></a>
+</h2>
+<p>The package supports modeling any infectious disease by customizing
+the epidemiological parameters. Here’s an example using influenza-like
+parameters:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Influenza example with custom parameters</span></span>
+<span><span class="va">flu_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CQ.sim2.html">CQ.sim2</a></span><span class="op">(</span></span>
+<span>  n.ind <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  TP <span class="op">=</span> <span class="fl">1.5</span>,                      <span class="co"># Lower transmission potential</span></span>
+<span>  k <span class="op">=</span> <span class="fl">0.5</span>,                       <span class="co"># Less overdispersion than COVID-19</span></span>
+<span>  p.vac.idx <span class="op">=</span> <span class="fl">0.4</span>,</span>
+<span>  p.vac.sc <span class="op">=</span> <span class="fl">0.4</span>,</span>
+<span>  vacc.cor <span class="op">=</span> <span class="fl">0.6</span>,</span>
+<span>  VE.trans <span class="op">=</span> <span class="fl">0.3</span>,                <span class="co"># Lower vaccine effectiveness</span></span>
+<span>  VE.inf <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  quarantine.duration <span class="op">=</span> <span class="fl">7</span>,       <span class="co"># Shorter isolation period</span></span>
+<span></span>
+<span>  <span class="co"># TTIQ scenario</span></span>
+<span> the.scenario <span class="op">=</span> <span class="st">"optimal"</span>,</span>
+<span></span>
+<span>  <span class="co"># Custom household distribution (e.g., UK data)</span></span>
+<span>  hh_probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.28</span>, <span class="fl">0.35</span>, <span class="fl">0.18</span>, <span class="fl">0.12</span>, <span class="fl">0.05</span>, <span class="fl">0.015</span>, <span class="fl">0.004</span>, <span class="fl">0.001</span><span class="op">)</span>,</span>
+<span></span>
+<span>  <span class="co"># Influenza-specific distributions</span></span>
+<span>  inc_meanlog <span class="op">=</span> <span class="fl">0.34</span>,            <span class="co"># ~1.4 day median incubation</span></span>
+<span>  inc_sdlog <span class="op">=</span> <span class="fl">0.42</span>,</span>
+<span>  gi_meanlog <span class="op">=</span> <span class="fl">0.91</span>,             <span class="co"># ~2.5 day median generation interval</span></span>
+<span>  gi_sdlog <span class="op">=</span> <span class="fl">0.52</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="common-disease-parameters">Common Disease Parameters<a class="anchor" aria-label="anchor" href="#common-disease-parameters"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="12%">
+<col width="37%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>Disease</th>
+<th>Incubation (meanlog, sdlog)</th>
+<th>Generation Interval (meanlog, sdlog)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>COVID-19 (default)</td>
+<td>1.63, 0.5 (~5.1 day median)</td>
+<td>1.376, 0.567 (~3.96 day median)</td>
+</tr>
+<tr class="even">
+<td>Influenza</td>
+<td>0.34, 0.42 (~1.4 day median)</td>
+<td>0.91, 0.52 (~2.5 day median)</td>
+</tr>
+<tr class="odd">
+<td>SARS</td>
+<td>1.39, 0.51 (~4 day median)</td>
+<td>2.0, 0.45 (~7.4 day median)</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section level2">
@@ -203,18 +276,24 @@ secondary cases per index case. Typical values: 1-5</li>
 <strong>k</strong> (Dispersion): Controls overdispersion. Lower
 values (0.1-0.3) indicate more superspreading</li>
 <li>
-<strong>VE.trans</strong>: Vaccine effectiveness against
+<strong>VE.trans</strong>: Vaccine/immunity effectiveness against
 transmission (0-1)</li>
 <li>
-<strong>VE.inf</strong>: Vaccine effectiveness against infection
-(0-1)</li>
+<strong>VE.inf</strong>: Vaccine/immunity effectiveness against
+infection (0-1)</li>
+<li>
+<strong>inc_meanlog, inc_sdlog</strong>: Lognormal parameters for
+incubation period</li>
+<li>
+<strong>gi_meanlog, gi_sdlog</strong>: Lognormal parameters for
+generation interval</li>
 </ul>
 </div>
 <div class="section level3">
 <h3 id="ttiq-scenarios">TTIQ Scenarios<a class="anchor" aria-label="anchor" href="#ttiq-scenarios"></a>
 </h3>
-<p>Three scenarios are available, representing different public health
-system performance:</p>
+<p>Three built-in scenarios represent different public health system
+performance:</p>
 <ul>
 <li>
 <strong>optimal</strong>: Fast contact tracing, rapid testing,
@@ -223,19 +302,37 @@ minimal delays</li>
 <strong>partial</strong>: Moderate delays in tracing and
 testing</li>
 <li>
-<strong>current_nsw_case_init</strong>: NSW baseline
-performance</li>
+<strong>baseline</strong>: Baseline system performance (formerly
+“current_nsw_case_init”)</li>
 </ul>
 <p>Each scenario has different distributions for: - Time to isolation
 (contact tracing speed) - Test turnaround time - Interview and
 notification delays</p>
+<p>You can also create custom scenarios:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create a custom scenario for a different context</span></span>
+<span><span class="va">custom_scenario</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_scenario_config.html">create_scenario_config</a></span><span class="op">(</span></span>
+<span>  name <span class="op">=</span> <span class="st">"rapid_response"</span>,</span>
+<span>  active_detection <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"lognormal"</span>, meanlog <span class="op">=</span> <span class="fl">0.8</span>, sdlog <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span>,</span>
+<span>  passive_detection <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"lognormal"</span>, meanlog <span class="op">=</span> <span class="fl">1.2</span>, sdlog <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>  test_turnaround <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"exponential"</span>, rate <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  interview_delay <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"exponential"</span>, rate <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  notification_delay <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"exponential"</span>, rate <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="state-specific-parameters">State-Specific Parameters<a class="anchor" aria-label="anchor" href="#state-specific-parameters"></a>
+<h3 id="household-size-distribution">Household Size Distribution<a class="anchor" aria-label="anchor" href="#household-size-distribution"></a>
 </h3>
-<p>The <code>the.state</code> parameter determines the household size
-distribution. Valid options: - “NSW”, “VIC”, “QLD”, “SA”, “WA”, “TAS”,
-“NT”, “ACT” - Or full names: “New South Wales”, “Victoria”, etc.</p>
+<p>The <code>region</code> parameter uses built-in Australian state
+data, or you can provide custom probabilities:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Using built-in Australian data</span></span>
+<span><span class="fu"><a href="../reference/CQ.sim2.html">CQ.sim2</a></span><span class="op">(</span><span class="va">...</span>, region <span class="op">=</span> <span class="st">"NSW"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/CQ.sim2.html">CQ.sim2</a></span><span class="op">(</span><span class="va">...</span>, region <span class="op">=</span> <span class="st">"Victoria"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Using custom household distribution</span></span>
+<span><span class="va">uk_probs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.28</span>, <span class="fl">0.35</span>, <span class="fl">0.18</span>, <span class="fl">0.12</span>, <span class="fl">0.05</span>, <span class="fl">0.015</span>, <span class="fl">0.004</span>, <span class="fl">0.001</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/CQ.sim2.html">CQ.sim2</a></span><span class="op">(</span><span class="va">...</span>, hh_probs <span class="op">=</span> <span class="va">uk_probs</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -264,26 +361,32 @@ detection.</p>
 <ul>
 <li>See the <strong>Model Details</strong> vignette for in-depth
 explanation of the simulation model</li>
-<li>See the <strong>Testing Strategies</strong> vignette for systematic
-strategy comparison methods</li>
-<li>See the <strong>Advanced Usage</strong> vignette for customization
-and extensions</li>
+<li>See the <strong>Finding Optimal Strategies</strong> vignette for
+systematic strategy comparison methods</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="quick-reference">Quick Reference<a class="anchor" aria-label="anchor" href="#quick-reference"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Basic simulation</span></span>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Basic simulation (COVID-19 defaults)</span></span>
 <span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CQ.sim2.html">CQ.sim2</a></span><span class="op">(</span><span class="va">n.ind</span>, <span class="va">TP</span>, <span class="va">k</span>, <span class="va">p.vac.idx</span>, <span class="va">p.vac.sc</span>, <span class="va">vacc.cor</span>,</span>
 <span>               <span class="va">VE.trans</span>, <span class="va">VE.inf</span>, <span class="va">quarantine.duration</span>,</span>
-<span>               <span class="va">the.scenario</span>, <span class="va">the.state</span><span class="op">)</span></span>
+<span>               <span class="va">the.scenario</span>, <span class="va">region</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Simulation with custom disease parameters</span></span>
+<span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CQ.sim2.html">CQ.sim2</a></span><span class="op">(</span><span class="va">n.ind</span>, <span class="va">TP</span>, <span class="va">k</span>, <span class="va">p.vac.idx</span>, <span class="va">p.vac.sc</span>, <span class="va">vacc.cor</span>,</span>
+<span>               <span class="va">VE.trans</span>, <span class="va">VE.inf</span>, <span class="va">quarantine.duration</span>,</span>
+<span>               <span class="va">the.scenario</span>,</span>
+<span>               hh_probs <span class="op">=</span> <span class="va">custom_probs</span>,</span>
+<span>               inc_meanlog <span class="op">=</span> <span class="fl">0.34</span>, inc_sdlog <span class="op">=</span> <span class="fl">0.42</span>,</span>
+<span>               gi_meanlog <span class="op">=</span> <span class="fl">0.91</span>, gi_sdlog <span class="op">=</span> <span class="fl">0.52</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Evaluate testing</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CQ.sim.test.times.html">CQ.sim.test.times</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">n.ind</span>, <span class="va">test.times</span>, <span class="va">VE.trans</span>, <span class="va">the.scenario</span><span class="op">)</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CQ.sim.test.times.html">CQ.sim.test.times</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">n.ind</span>, <span class="va">test.times</span>, <span class="va">TP</span>, <span class="va">VE.trans</span>, <span class="va">the.scenario</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Evaluate no testing</span></span>
-<span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CQ.sim.notest.html">CQ.sim.notest</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">n.ind</span>, <span class="va">VE.trans</span>, <span class="va">the.scenario</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CQ.sim.notest.html">CQ.sim.notest</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">n.ind</span>, <span class="va">TP</span>, <span class="va">VE.trans</span>, <span class="va">the.scenario</span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

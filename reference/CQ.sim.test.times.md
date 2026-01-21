@@ -1,13 +1,26 @@
-# Evaluate Quarantine Testing Strategy
+# Evaluate Isolation Testing Strategy
 
 Evaluates the effectiveness of a specified testing schedule during
-quarantine by calculating the infection potential and mean number of
+isolation by calculating the infection potential and mean number of
 cases that would occur given the testing regime.
 
 ## Usage
 
 ``` r
-CQ.sim.test.times(CQ.sim.output, n.ind, test.times, VE.trans, the.scenario)
+CQ.sim.test.times(
+  CQ.sim.output,
+  n.ind,
+  test.times,
+  TP,
+  VE.trans,
+  the.scenario,
+  scenario_config = NULL,
+  gi_meanlog = 1.376,
+  gi_sdlog = 0.567,
+  test_intercept = 1.5,
+  test_slope_prepeak = 2.2,
+  test_slope_postpeak = 0.22
+)
 ```
 
 ## Arguments
@@ -27,6 +40,10 @@ CQ.sim.test.times(CQ.sim.output, n.ind, test.times, VE.trans, the.scenario)
   start of quarantine). For example, c(1, 3, 6) means tests on days 1,
   3, and 6.
 
+- TP:
+
+  Numeric. Transmission potential - should match value used in CQ.sim2.
+
 - VE.trans:
 
   Numeric. Vaccine effectiveness against transmission (0-1). Must match
@@ -34,8 +51,31 @@ CQ.sim.test.times(CQ.sim.output, n.ind, test.times, VE.trans, the.scenario)
 
 - the.scenario:
 
-  Character. TTIQ scenario name. Must be one of: "optimal", "partial",
-  or "current_nsw_case_init".
+  Character. TTIQ scenario name: "optimal", "partial", or "baseline".
+
+- scenario_config:
+
+  A scenario_config object. If provided, overrides the.scenario.
+
+- gi_meanlog:
+
+  Numeric. Generation interval meanlog. Default 1.376 (COVID-19).
+
+- gi_sdlog:
+
+  Numeric. Generation interval sdlog. Default 0.567 (COVID-19).
+
+- test_intercept:
+
+  Numeric. Test sensitivity intercept. Default 1.5.
+
+- test_slope_prepeak:
+
+  Numeric. Test sensitivity slope pre-peak. Default 2.2.
+
+- test_slope_postpeak:
+
+  Numeric. Test sensitivity slope post-peak. Default 0.22.
 
 ## Value
 
@@ -58,7 +98,7 @@ A single-row data frame with the following columns:
 ## Details
 
 This function models the impact of a testing schedule on transmission
-during quarantine. For each index case, it:
+during isolation. For each index case, it:
 
 1.  Determines the time of first positive test using an internal testing
     function
@@ -108,6 +148,7 @@ evaluation <- CQ.sim.test.times(
   CQ.sim.output = sim_results,
   n.ind = 1000,
   test.times = c(1, 3, 6),
+  TP = 3.0,
   VE.trans = 0.5,
   the.scenario = "optimal"
 )

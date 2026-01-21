@@ -7,20 +7,21 @@ statistical models underlying the **isolatr** package. Understanding
 these details will help you:
 
 - Interpret results correctly
-- Choose appropriate parameter values
+- Choose appropriate parameter values for different diseases
 - Assess model limitations
 - Extend or modify the model for your needs
 
 ## Conceptual Model
 
-The simulation models the following process:
+The simulation models the following process for any close-contact
+communicable disease:
 
 1.  **Index case infection**: An individual (primary close contact) is
-    exposed to COVID-19
+    exposed to the pathogen
 2.  **Incubation period**: Time from exposure to symptom onset
-3.  **Contact tracing**: Index case is identified and quarantined
+3.  **Contact tracing**: Index case is identified and isolated
 4.  **Household transmission**: Potential spread within household during
-    quarantine
+    isolation
 5.  **Testing schedule**: Active testing may detect infection early
 6.  **Passive detection**: Symptom development leads to healthcare
     seeking
@@ -46,29 +47,42 @@ parameter (smaller = more overdispersion/superspreading)
 
 Time from infection of index case to infection of secondary case $j$:
 
-$$GI_{ij} \sim \text{LogNormal}(\mu = 1.376,\sigma = 0.567)$$
+$$GI_{ij} \sim \text{LogNormal}\left( \mu_{gi},\sigma_{gi} \right)$$
 
-This gives median GI ≈ 3.96 days, calibrated to Australian COVID-19
-data.
+Default parameters (COVID-19): $\mu_{gi} = 1.376$,
+$\sigma_{gi} = 0.567$, giving median GI ≈ 3.96 days.
+
+These parameters are configurable via `gi_meanlog` and `gi_sdlog` for
+other diseases: - **Influenza**: $\mu_{gi} \approx 0.91$,
+$\sigma_{gi} \approx 0.52$ (~2.5 day median) - **SARS**:
+$\mu_{gi} \approx 2.0$, $\sigma_{gi} \approx 0.45$ (~7.4 day median)
 
 ### Incubation Period
 
 Time from infection to symptom onset for index case $i$:
 
-$$IP_{i} \sim \text{LogNormal}(\mu = 1.63,\sigma = 0.5)$$
+$$IP_{i} \sim \text{LogNormal}\left( \mu_{ip},\sigma_{ip} \right)$$
 
-Median IP ≈ 5.1 days.
+Default parameters (COVID-19): $\mu_{ip} = 1.63$, $\sigma_{ip} = 0.5$,
+giving median IP ≈ 5.1 days.
+
+Configurable via `inc_meanlog` and `inc_sdlog`: - **Influenza**:
+$\mu_{ip} \approx 0.34$, $\sigma_{ip} \approx 0.42$ (~1.4 day median) -
+**SARS**: $\mu_{ip} \approx 1.39$, $\sigma_{ip} \approx 0.51$ (~4 day
+median)
 
 ### Household Structure
 
-Household size for index case $i$ in state $s$:
+Household size for index case $i$ in region $r$:
 
-$$HH_{i,s} \sim F_{s}(h)$$
+$$HH_{i,r} \sim F_{r}(h)$$
 
-where $F_{s}(h)$ is the empirical CDF of household sizes in state $s$,
-derived from Australian census data.
+where $F_{r}(h)$ is the empirical CDF of household sizes in region $r$.
 
-### Vaccination Model
+Built-in data covers Australian states. Custom distributions can be
+provided via `hh_probs` for any region worldwide.
+
+### Vaccination/Immunity Model
 
 Index case vaccination status:
 
@@ -83,15 +97,18 @@ $$V_{ij} \sim \begin{cases}
 
 where $\rho$ is the household vaccination correlation.
 
-### Vaccine Effectiveness
+### Vaccine/Immunity Effectiveness
 
 Probability of infection given exposure:
 
 $$P\left( \text{infection} \mid \text{exposure} \right) = \left( 1 - VE_{trans} \cdot V_{i} \right) \cdot \left( 1 - VE_{inf} \cdot V_{j} \right)$$
 
-where: - $VE_{trans}$ = vaccine effectiveness against transmission
-(reduces infectiousness) - $VE_{inf}$ = vaccine effectiveness against
-infection (reduces susceptibility)
+where: - $VE_{trans}$ = effectiveness against transmission (reduces
+infectiousness) - $VE_{inf}$ = effectiveness against infection (reduces
+susceptibility)
+
+These parameters can represent vaccine effectiveness, prior immunity, or
+other protective factors.
 
 ## Infection Classification
 
@@ -106,9 +123,9 @@ isolation:
   after quarantine ends
 
 A proportion of pre-isolation and post-quarantine infections are
-randomly reassigned to household (with probability 0.5), up to the
-household size limit. This accounts for uncertainty in exact infection
-timing.
+randomly reassigned to household (with probability
+`hh_transmission_prob`, default 0.5), up to the household size limit.
+This accounts for uncertainty in exact infection timing and location.
 
 ## Testing Model
 
@@ -128,12 +145,17 @@ where $t$ is test day (relative to isolation start).
 
 Test sensitivity:
 $$P\left( \text{positive} \mid \text{infected},t \right) = \begin{cases}
-\frac{1}{1 + \exp\left( - \left( 1.5 + 2.2s_{t} \right) \right)} & {{\text{if}\mspace{6mu}}s_{t} < 0{\mspace{6mu}\text{(pre-peak)}}} \\
-\frac{1}{1 + \exp\left( - \left( 1.5 - 0.22s_{t} \right) \right)} & {{\text{if}\mspace{6mu}}s_{t} \geq 0{\mspace{6mu}\text{(post-peak)}}}
+\frac{1}{1 + \exp\left( - \left( \beta_{0} + \beta_{pre} \cdot s_{t} \right) \right)} & {{\text{if}\mspace{6mu}}s_{t} < 0{\mspace{6mu}\text{(pre-peak)}}} \\
+\frac{1}{1 + \exp\left( - \left( \beta_{0} - \beta_{post} \cdot s_{t} \right) \right)} & {{\text{if}\mspace{6mu}}s_{t} \geq 0{\mspace{6mu}\text{(post-peak)}}}
 \end{cases}$$
 
-Pre-peak: sensitivity increases as viral load rises Post-peak:
-sensitivity decreases as viral load declines
+Default parameters (calibrated to COVID-19 PCR): - $\beta_{0} = 1.5$
+(intercept) - $\beta_{pre} = 2.2$ (pre-peak slope) -
+$\beta_{post} = 0.22$ (post-peak slope)
+
+These can be adjusted via `test_intercept`, `test_slope_prepeak`, and
+`test_slope_postpeak` for different test types (e.g., rapid antigen
+tests) or diseases.
 
 ### Time to First Positive Test
 
@@ -159,9 +181,9 @@ Time to detection through symptoms (without active testing):
 
 $$T_{passive,ij} = t_{inf,ij} + D_{passive}$$
 
-where $D_{passive}$ is sampled from scenario-specific empirical
-distribution representing: - Time from infection to symptom onset - Time
-from symptoms to healthcare seeking - Time from healthcare seeking to
+where $D_{passive}$ is sampled from scenario-specific distribution
+representing: - Time from infection to symptom onset - Time from
+symptoms to healthcare seeking - Time from healthcare seeking to
 confirmation
 
 ### Active Detection (Contact Tracing)
@@ -174,6 +196,35 @@ where $D_{active}$ is sampled from scenario-specific distribution
 representing: - Time to index case detection - Time to interview index
 case - Time to identify and notify close contacts - Time to quarantine
 close contacts
+
+## Scenario Configuration
+
+### Built-in Scenarios
+
+Three scenarios are provided, representing different public health
+system performance:
+
+- **optimal**: Fast contact tracing and testing with minimal delays
+- **partial**: Moderate delays in tracing and testing
+- **baseline**: System baseline performance
+
+### Custom Scenarios
+
+You can create custom scenarios using
+[`create_scenario_config()`](../reference/create_scenario_config.md):
+
+``` r
+custom <- create_scenario_config(
+  name = "my_scenario",
+  active_detection = list(type = "lognormal", meanlog = 1.0, sdlog = 0.5),
+  passive_detection = list(type = "lognormal", meanlog = 1.5, sdlog = 0.6),
+  test_turnaround = list(type = "gamma", shape = 2, rate = 2),
+  interview_delay = list(type = "exponential", rate = 1),
+  notification_delay = list(type = "exponential", rate = 0.8)
+)
+```
+
+Supported distribution types: `lognormal`, `gamma`, `exponential`.
 
 ## Infection Potential Calculation
 
@@ -191,55 +242,40 @@ Total Infection Potential in Quarantine (IPq):
 
 $$IPq = \frac{1}{n_{ind}}\sum\limits_{i = 1}^{n_{ind}}\sum\limits_{j \in \text{undetected}}IP_{ij}$$
 
-## Scenario-Specific Distributions
-
-Each TTIQ scenario has empirical distributions for:
-
-1.  **Time to isolation** (active detection)
-2.  **Time to passive detection**
-3.  **Test turnaround time**
-4.  **Interview delay**
-5.  **Notification delay**
-
-These distributions are derived from: - **optimal**: Best-case
-assumptions (rapid tracing, fast testing) - **partial**: Moderate
-delays - **current_nsw_case_init**: NSW empirical data
-
-The distributions are stored as: - Sampled values (for turnaround
-times) - Cumulative probabilities (for inverse transform sampling)
-
 ## Key Assumptions
 
 ### Included in Model
 
-1.  Household-correlated vaccination
+1.  Household-correlated vaccination/immunity
 2.  Overdispersed transmission (superspreading)
 3.  Time-varying test sensitivity
 4.  Scenario-specific detection delays
-5.  State-specific household structures
-6.  Vaccine effectiveness against transmission and infection
+5.  Region-specific household structures
+6.  Vaccine/immunity effectiveness against transmission and infection
+7.  Configurable epidemiological distributions
 
 ### Not Included in Model
 
 1.  Waning vaccine effectiveness over time
-2.  Variant-specific parameters
+2.  Variant-specific parameters (though these can be approximated by
+    adjusting parameters)
 3.  Age structure
 4.  Compliance with quarantine
-5.  Re-infection or prior immunity
+5.  Re-infection or prior immunity (beyond binary status)
 6.  Test specificity (false positives)
 7.  Behavioral changes after testing
 
 ## Model Validation
 
-The model parameters are calibrated to:
+The default parameters are calibrated to:
 
-- **Generation interval**: Australian COVID-19 contact tracing data
+- **Generation interval**: COVID-19 contact tracing data
 - **Incubation period**: Systematic reviews of COVID-19 studies
-- **Household sizes**: Australian census data
-- **Detection delays**: NSW TTIQ system data
+- **Household sizes**: Australian census data (built-in)
+- **Detection delays**: TTIQ system data
 
-Test sensitivity curves are based on published PCR sensitivity over the
-infection course.
+For other diseases, users should source appropriate epidemiological
+parameters from the literature.
 
 ## Uncertainty and Sensitivity
 
@@ -255,12 +291,13 @@ To quantify uncertainty:
 - Run multiple simulations with different random seeds
 - Vary key parameters (TP, k, VE) within plausible ranges
 - Compare results across TTIQ scenarios
+- Perform sensitivity analysis on disease-specific parameters
 
 ## Limitations
 
 1.  **Simplified household transmission**: Assumes random mixing within
     households
-2.  **No between-household heterogeneity**: All households in a state
+2.  **No between-household heterogeneity**: All households in a region
     use same size distribution
 3.  **Deterministic viral load trajectory**: Peak time is random but
     shape is fixed
@@ -270,20 +307,51 @@ To quantify uncertainty:
 6.  **No serial interval variation**: Uses same distribution for all
     transmission pairs
 
+## Adapting for Different Diseases
+
+To use the model for a disease other than COVID-19:
+
+1.  **Literature review**: Find estimates for incubation period and
+    generation interval
+2.  **Convert to lognormal**: Express as meanlog and sdlog parameters
+3.  **Adjust transmission**: Set appropriate TP and k values
+4.  **Test sensitivity**: Adjust logistic coefficients if test
+    performance differs
+5.  **Household data**: Provide region-specific household size
+    distribution
+6.  **Scenario parameters**: Create custom scenarios if TTIQ system
+    differs
+
+### Example: Influenza Configuration
+
+``` r
+CQ.sim2(
+  ...,
+  inc_meanlog = 0.34, inc_sdlog = 0.42,  # ~1.4 day median
+  gi_meanlog = 0.91, gi_sdlog = 0.52,    # ~2.5 day median
+  TP = 1.5, k = 0.5,                      # Lower transmission
+  quarantine.duration = 7                  # Shorter isolation
+)
+```
+
 ## References
 
-Generation interval parameterization: \> \[Reference to Australian
-COVID-19 study\]
+Generation interval parameterization: \> See disease-specific literature
+for appropriate values
 
-Incubation period: \> \[Reference to systematic review\]
+Incubation period: \> See disease-specific systematic reviews
 
 Household size data: \> Australian Bureau of Statistics. Census 2021.
 
-Test sensitivity modeling: \> \[Reference to PCR sensitivity study\]
+Test sensitivity modeling: \> Based on PCR sensitivity studies; adjust
+for other test types
 
 ## See Also
 
 - [`vignette("quick-start-guide")`](../articles/quick-start-guide.md)
   for basic usage
 - [`?CQ.sim2`](../reference/CQ.sim2.md) for function documentation
-- `vignette("testing-strategies")` for strategy comparison methods
+- [`vignette("finding-optimal-strategies")`](../articles/finding-optimal-strategies.md)
+  for strategy comparison methods
+- [`?create_scenario_config`](../reference/create_scenario_config.md)
+  for custom scenario creation

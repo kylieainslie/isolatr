@@ -70,13 +70,14 @@
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
 <p>This vignette demonstrates a complete workflow for systematically
-evaluating and identifying optimal testing strategies for quarantined
-individuals. The methods shown here are based on the analysis scripts in
-<code>inst/examples/</code> and illustrate how to:</p>
+evaluating and identifying optimal testing strategies for isolated
+individuals. While we use COVID-19 parameters as an example, the methods
+apply to any infectious disease.</p>
+<p>The workflow shows how to:</p>
 <ol style="list-style-type: decimal">
 <li>Generate all possible testing schedules within constraints</li>
 <li>Evaluate each schedule in parallel for computational efficiency</li>
-<li>Identify optimal schedules for different scenarios and quarantine
+<li>Identify optimal schedules for different scenarios and isolation
 durations</li>
 <li>Visualize and compare results</li>
 </ol>
@@ -97,14 +98,16 @@ transmission reduction.</p>
 <div class="section level2">
 <h2 id="define-simulation-parameters">Define Simulation Parameters<a class="anchor" aria-label="anchor" href="#define-simulation-parameters"></a>
 </h2>
-<p>First, define the epidemiological and intervention parameters:</p>
+<p>First, define the epidemiological and intervention parameters. This
+example uses COVID-19 parameters, but these can be adjusted for other
+diseases.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Epidemiological parameters</span></span>
+<code class="sourceCode R"><span><span class="co"># Epidemiological parameters (COVID-19 example)</span></span>
 <span><span class="va">n.ind</span> <span class="op">&lt;-</span> <span class="fl">100000</span>  <span class="co"># Large sample for stable estimates</span></span>
 <span><span class="va">TP</span> <span class="op">&lt;-</span> <span class="fl">1.2</span>        <span class="co"># Transmission potential</span></span>
 <span><span class="va">k</span> <span class="op">&lt;-</span> <span class="fl">0.2</span>         <span class="co"># Dispersion parameter (superspreading)</span></span>
 <span></span>
-<span><span class="co"># Vaccination parameters (NSW example)</span></span>
+<span><span class="co"># Vaccination parameters</span></span>
 <span><span class="va">p.vac.idx</span> <span class="op">&lt;-</span> <span class="fl">0.723</span>   <span class="co"># Index case vaccination probability</span></span>
 <span><span class="va">p.vac.sc</span> <span class="op">&lt;-</span> <span class="fl">0.723</span>    <span class="co"># Secondary case vaccination probability</span></span>
 <span><span class="va">vacc.cor</span> <span class="op">&lt;-</span> <span class="fl">0.9</span>      <span class="co"># Household vaccination correlation</span></span>
@@ -113,21 +116,43 @@ transmission reduction.</p>
 <span><span class="va">VE.trans</span> <span class="op">&lt;-</span> <span class="fl">0.4</span>      <span class="co"># Against transmission</span></span>
 <span><span class="va">VE.inf</span> <span class="op">&lt;-</span> <span class="fl">0.72</span>       <span class="co"># Against infection</span></span>
 <span></span>
-<span><span class="co"># State</span></span>
-<span><span class="va">the.state</span> <span class="op">&lt;-</span> <span class="st">"NSW"</span></span>
+<span><span class="co"># Region for household sizes (or use hh_probs for custom)</span></span>
+<span><span class="va">region</span> <span class="op">&lt;-</span> <span class="st">"NSW"</span></span>
+<span></span>
+<span><span class="co"># Epidemiological distributions (COVID-19 defaults)</span></span>
+<span><span class="co"># For other diseases, adjust these:</span></span>
+<span><span class="va">inc_meanlog</span> <span class="op">&lt;-</span> <span class="fl">1.63</span>   <span class="co"># Incubation period meanlog</span></span>
+<span><span class="va">inc_sdlog</span> <span class="op">&lt;-</span> <span class="fl">0.5</span>      <span class="co"># Incubation period sdlog</span></span>
+<span><span class="va">gi_meanlog</span> <span class="op">&lt;-</span> <span class="fl">1.376</span>   <span class="co"># Generation interval meanlog</span></span>
+<span><span class="va">gi_sdlog</span> <span class="op">&lt;-</span> <span class="fl">0.567</span>     <span class="co"># Generation interval sdlog</span></span>
 <span></span>
 <span><span class="co"># TTIQ scenarios to evaluate</span></span>
-<span><span class="va">the.scenarios</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"optimal"</span>, <span class="st">"partial"</span>, <span class="st">"current_nsw_case_init"</span><span class="op">)</span></span>
+<span><span class="va">the.scenarios</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"optimal"</span>, <span class="st">"partial"</span>, <span class="st">"baseline"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Quarantine durations to evaluate</span></span>
+<span><span class="co"># Isolation durations to evaluate</span></span>
 <span><span class="va">quarantine.durations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">14</span>, <span class="fl">7</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="adapting-for-other-diseases">Adapting for Other Diseases<a class="anchor" aria-label="anchor" href="#adapting-for-other-diseases"></a>
+</h3>
+<p>To evaluate testing strategies for influenza or another disease,
+modify the parameters:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Influenza example</span></span>
+<span><span class="va">TP</span> <span class="op">&lt;-</span> <span class="fl">1.5</span></span>
+<span><span class="va">k</span> <span class="op">&lt;-</span> <span class="fl">0.5</span></span>
+<span><span class="va">inc_meanlog</span> <span class="op">&lt;-</span> <span class="fl">0.34</span>    <span class="co"># ~1.4 day median</span></span>
+<span><span class="va">inc_sdlog</span> <span class="op">&lt;-</span> <span class="fl">0.42</span></span>
+<span><span class="va">gi_meanlog</span> <span class="op">&lt;-</span> <span class="fl">0.91</span>     <span class="co"># ~2.5 day median</span></span>
+<span><span class="va">gi_sdlog</span> <span class="op">&lt;-</span> <span class="fl">0.52</span></span>
+<span><span class="va">quarantine.durations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">5</span><span class="op">)</span>  <span class="co"># Shorter isolation</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="generate-testing-schedules">Generate Testing Schedules<a class="anchor" aria-label="anchor" href="#generate-testing-schedules"></a>
 </h2>
 <p>Use <code>test.designs()</code> to systematically generate all valid
 testing schedules:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Maximum possible test days</span></span>
 <span><span class="va">max_days</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">quarantine.durations</span><span class="op">)</span></span>
 <span></span>
@@ -175,17 +200,17 @@ testing schedules:</p>
 <div class="section level2">
 <h2 id="run-simulations-for-each-scenario">Run Simulations for Each Scenario<a class="anchor" aria-label="anchor" href="#run-simulations-for-each-scenario"></a>
 </h2>
-<p>Now we loop over quarantine durations and TTIQ scenarios, evaluating
+<p>Now we loop over isolation durations and TTIQ scenarios, evaluating
 all testing schedules in parallel:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">hq.d</span> <span class="kw">in</span> <span class="va">quarantine.durations</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw">for</span> <span class="op">(</span><span class="va">ts</span> <span class="kw">in</span> <span class="va">the.scenarios</span><span class="op">)</span> <span class="op">{</span></span>
 <span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"\nEvaluating"</span>, <span class="va">ts</span>, <span class="st">"scenario with"</span>, <span class="va">hq.d</span>, <span class="st">"day quarantine\n"</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"\nEvaluating"</span>, <span class="va">ts</span>, <span class="st">"scenario with"</span>, <span class="va">hq.d</span>, <span class="st">"day isolation\n"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span>    <span class="co"># For 7-day quarantine, filter out schedules that extend beyond day 7</span></span>
+<span>    <span class="co"># For 7-day isolation, filter out schedules that extend beyond day 7</span></span>
 <span>    <span class="kw">if</span> <span class="op">(</span><span class="va">hq.d</span> <span class="op">==</span> <span class="fl">7</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">all.times</span><span class="op">)</span> <span class="op">==</span> <span class="fl">3</span><span class="op">)</span> <span class="op">{</span></span>
 <span>      <span class="va">all.times_filtered</span> <span class="op">&lt;-</span> <span class="va">all.times</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">Var3</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -209,7 +234,11 @@ all testing schedules in parallel:</p>
 <span>      VE.inf <span class="op">=</span> <span class="va">VE.inf</span>,</span>
 <span>      quarantine.duration <span class="op">=</span> <span class="va">hq.d</span>,</span>
 <span>      the.scenario <span class="op">=</span> <span class="va">ts</span>,</span>
-<span>      the.state <span class="op">=</span> <span class="va">the.state</span></span>
+<span>      region <span class="op">=</span> <span class="va">region</span>,</span>
+<span>      inc_meanlog <span class="op">=</span> <span class="va">inc_meanlog</span>,</span>
+<span>      inc_sdlog <span class="op">=</span> <span class="va">inc_sdlog</span>,</span>
+<span>      gi_meanlog <span class="op">=</span> <span class="va">gi_meanlog</span>,</span>
+<span>      gi_sdlog <span class="op">=</span> <span class="va">gi_sdlog</span></span>
 <span>    <span class="op">)</span></span>
 <span></span>
 <span>    <span class="co"># Step 2: Evaluate all testing schedules in parallel</span></span>
@@ -227,8 +256,11 @@ all testing schedules in parallel:</p>
 <span>        CQ.sim.output <span class="op">=</span> <span class="va">CQ.output</span>,</span>
 <span>        n.ind <span class="op">=</span> <span class="va">n.ind</span>,</span>
 <span>        test.times <span class="op">=</span> <span class="va">all.times_filtered</span><span class="op">[</span><span class="va">i</span>, <span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>        TP <span class="op">=</span> <span class="va">TP</span>,</span>
 <span>        VE.trans <span class="op">=</span> <span class="va">VE.trans</span>,</span>
-<span>        the.scenario <span class="op">=</span> <span class="va">ts</span></span>
+<span>        the.scenario <span class="op">=</span> <span class="va">ts</span>,</span>
+<span>        gi_meanlog <span class="op">=</span> <span class="va">gi_meanlog</span>,</span>
+<span>        gi_sdlog <span class="op">=</span> <span class="va">gi_sdlog</span></span>
 <span>      <span class="op">)</span></span>
 <span>    <span class="op">}</span></span>
 <span></span>
@@ -254,7 +286,7 @@ all testing schedules in parallel:</p>
 <div class="section level2">
 <h2 id="process-and-analyze-results">Process and Analyze Results<a class="anchor" aria-label="anchor" href="#process-and-analyze-results"></a>
 </h2>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Clean up column names</span></span>
 <span><span class="va">colnames_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"t1"</span>, <span class="st">"t2"</span>, <span class="st">"t3"</span><span class="op">)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">all.times</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">{</span></span>
@@ -291,13 +323,13 @@ all testing schedules in parallel:</p>
 <div class="section level3">
 <h3 id="optimal-strategies-bar-plot">1. Optimal Strategies Bar Plot<a class="anchor" aria-label="anchor" href="#optimal-strategies-bar-plot"></a>
 </h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">optimal_schedules</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
 <span>    scenario <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span></span>
 <span>      <span class="va">scenario</span>,</span>
-<span>      levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"optimal"</span>, <span class="st">"current_nsw_case_init"</span>, <span class="st">"partial"</span><span class="op">)</span>,</span>
-<span>      labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Optimal delays"</span>, <span class="st">"NSW case-initiated delays"</span>, <span class="st">"Partial delays"</span><span class="op">)</span>,</span>
+<span>      levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"optimal"</span>, <span class="st">"baseline"</span>, <span class="st">"partial"</span><span class="op">)</span>,</span>
+<span>      labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Optimal delays"</span>, <span class="st">"Baseline delays"</span>, <span class="st">"Partial delays"</span><span class="op">)</span>,</span>
 <span>      ordered <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -313,7 +345,7 @@ all testing schedules in parallel:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">TT</span>, y <span class="op">=</span> <span class="va">IPq</span>, fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">n.tests</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>position <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html" class="external-link">position_dodge</a></span><span class="op">(</span>preserve <span class="op">=</span> <span class="st">"single"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_discrete.html" class="external-link">scale_x_discrete</a></span><span class="op">(</span><span class="st">"Test Strategy"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span><span class="st">"IPq (Infection Potential in Quarantine)"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span><span class="st">"IPq (Infection Potential in Isolation)"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_fill_discrete</a></span><span class="op">(</span><span class="st">"Number of Tests"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="va">q.duration</span> <span class="op">~</span> <span class="va">scenario</span>, scales <span class="op">=</span> <span class="st">"free_x"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -326,7 +358,7 @@ all testing schedules in parallel:</p>
 <h3 id="scatter-plot-test-timing-vs-ipq">2. Scatter Plot: Test Timing vs IPq<a class="anchor" aria-label="anchor" href="#scatter-plot-test-timing-vs-ipq"></a>
 </h3>
 <p>For each number of tests, visualize how test timing affects IPq:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Identify optimal schedules for highlighting</span></span>
 <span><span class="va">the.opt</span> <span class="op">&lt;-</span> <span class="va">all_results</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/row_number.html" class="external-link">row_number</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -375,7 +407,7 @@ all testing schedules in parallel:</p>
 <span>    colour <span class="op">=</span> <span class="st">"black"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span><span class="st">"IPq"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span><span class="st">"Test day for PCC"</span>, breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">14</span>, by <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span><span class="st">"Test day"</span>, breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">14</span>, by <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="va">q.duration</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_colour_manual</a></span><span class="op">(</span></span>
 <span>    <span class="st">"Test Number"</span>,</span>
@@ -389,7 +421,7 @@ all testing schedules in parallel:</p>
 <h3 id="efficiency-analysis">3. Efficiency Analysis<a class="anchor" aria-label="anchor" href="#efficiency-analysis"></a>
 </h3>
 <p>Identify schedules that perform within 2% of optimal:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">near_optimal</span> <span class="op">&lt;-</span> <span class="va">all_results</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">scenario</span>, <span class="va">q.duration</span>, <span class="va">n.tests</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">IPq</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -430,22 +462,25 @@ smaller marginal benefit than adding a 2nd</li>
 <li>
 <strong>Robustness</strong>: Multiple schedules often perform nearly
 as well as the single optimum</li>
+<li>
+<strong>Disease-specific</strong>: Optimal timing depends on
+incubation period and generation interval</li>
 </ol>
 </div>
 <div class="section level2">
-<h2 id="comparing-different-quarantine-policies">Comparing Different Quarantine Policies<a class="anchor" aria-label="anchor" href="#comparing-different-quarantine-policies"></a>
+<h2 id="comparing-different-isolation-policies">Comparing Different Isolation Policies<a class="anchor" aria-label="anchor" href="#comparing-different-isolation-policies"></a>
 </h2>
 <p>You can extend this framework to compare alternative policies, such
-as differential quarantine by vaccination status:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Example: 7-day quarantine for vaccinated, 14-day for unvaccinated</span></span>
+as differential isolation by vaccination status:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Example: 7-day isolation for vaccinated, 14-day for unvaccinated</span></span>
 <span><span class="co"># This requires running separate simulations for each group</span></span>
-<span><span class="co"># See inst/examples/runCq_7unv_14v_quarantine.R for full implementation</span></span></code></pre></div>
+<span><span class="co"># See inst/examples/ for full implementation</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="exporting-results">Exporting Results<a class="anchor" aria-label="anchor" href="#exporting-results"></a>
 </h2>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Save optimal schedules</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span></span>
 <span>  <span class="va">optimal_schedules</span>,</span>
@@ -479,7 +514,37 @@ days and tests</li>
 infection data</li>
 </ul>
 <p>Typical runtime: ~30-60 minutes for complete analysis (all scenarios
-× durations) with 4 cores.</p>
+x durations) with 4 cores.</p>
+</div>
+<div class="section level2">
+<h2 id="adapting-for-other-diseases-1">Adapting for Other Diseases<a class="anchor" aria-label="anchor" href="#adapting-for-other-diseases-1"></a>
+</h2>
+<p>The key considerations when adapting this analysis for other
+diseases:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Adjust epidemiological parameters</strong>: incubation
+period, generation interval</li>
+<li>
+<strong>Modify isolation durations</strong>: shorter for diseases
+with faster dynamics</li>
+<li>
+<strong>Update test sensitivity</strong>: different tests have
+different performance curves</li>
+<li>
+<strong>Consider transmission patterns</strong>: diseases with less
+household transmission may need different strategies</li>
+</ol>
+<div class="section level3">
+<h3 id="example-influenza-analysis">Example: Influenza Analysis<a class="anchor" aria-label="anchor" href="#example-influenza-analysis"></a>
+</h3>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Run the same workflow with influenza parameters</span></span>
+<span><span class="co"># Key changes:</span></span>
+<span><span class="co"># - Shorter isolation periods (5-7 days)</span></span>
+<span><span class="co"># - Earlier optimal test times (due to shorter generation interval)</span></span>
+<span><span class="co"># - Consider rapid antigen test performance</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="next-steps">Next Steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>
@@ -495,10 +560,13 @@ constraints</li>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<p>This workflow is based on:</p>
-<blockquote>
-<p>[Citation to paper describing the optimization approach]</p>
-</blockquote>
+<p>This workflow can be applied to:</p>
+<ul>
+<li>Pandemic preparedness planning</li>
+<li>Real-time policy evaluation during outbreaks</li>
+<li>Comparing testing strategies across different diseases</li>
+<li>Optimizing resource allocation for testing programs</li>
+</ul>
 <p>For parallel computing in R: &gt; <code><a href="https://rdrr.io/pkg/foreach/man/foreach.html" class="external-link">?foreach</a></code>,
 <code>?doParallel</code></p>
 </div>

@@ -74,7 +74,7 @@ and statistical models underlying the <strong>isolatr</strong> package.
 Understanding these details will help you:</p>
 <ul>
 <li>Interpret results correctly</li>
-<li>Choose appropriate parameter values</li>
+<li>Choose appropriate parameter values for different diseases</li>
 <li>Assess model limitations</li>
 <li>Extend or modify the model for your needs</li>
 </ul>
@@ -82,20 +82,21 @@ Understanding these details will help you:</p>
 <div class="section level2">
 <h2 id="conceptual-model">Conceptual Model<a class="anchor" aria-label="anchor" href="#conceptual-model"></a>
 </h2>
-<p>The simulation models the following process:</p>
+<p>The simulation models the following process for any close-contact
+communicable disease:</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>Index case infection</strong>: An individual (primary close
-contact) is exposed to COVID-19</li>
+contact) is exposed to the pathogen</li>
 <li>
 <strong>Incubation period</strong>: Time from exposure to symptom
 onset</li>
 <li>
 <strong>Contact tracing</strong>: Index case is identified and
-quarantined</li>
+isolated</li>
 <li>
 <strong>Household transmission</strong>: Potential spread within
-household during quarantine</li>
+household during isolation</li>
 <li>
 <strong>Testing schedule</strong>: Active testing may detect
 infection early</li>
@@ -131,34 +132,56 @@ overdispersion/superspreading)</p>
 </h3>
 <p>Time from infection of index case to infection of secondary case
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><msub><mi>I</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>∼</mo><mtext mathvariant="normal">LogNormal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo>=</mo><mn>1.376</mn><mo>,</mo><mi>σ</mi><mo>=</mo><mn>0.567</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">GI_{ij} \sim \text{LogNormal}(\mu=1.376, \sigma=0.567)</annotation></semantics></math></p>
-<p>This gives median GI ≈ 3.96 days, calibrated to Australian COVID-19
-data.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><msub><mi>I</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>∼</mo><mtext mathvariant="normal">LogNormal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo>,</mo><msub><mi>σ</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">GI_{ij} \sim \text{LogNormal}(\mu_{gi}, \sigma_{gi})</annotation></semantics></math></p>
+<p>Default parameters (COVID-19):
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo>=</mo><mn>1.376</mn></mrow><annotation encoding="application/x-tex">\mu_{gi}=1.376</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo>=</mo><mn>0.567</mn></mrow><annotation encoding="application/x-tex">\sigma_{gi}=0.567</annotation></semantics></math>,
+giving median GI ≈ 3.96 days.</p>
+<p>These parameters are configurable via <code>gi_meanlog</code> and
+<code>gi_sdlog</code> for other diseases: - <strong>Influenza</strong>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo>≈</mo><mn>0.91</mn></mrow><annotation encoding="application/x-tex">\mu_{gi} \approx 0.91</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo>≈</mo><mn>0.52</mn></mrow><annotation encoding="application/x-tex">\sigma_{gi} \approx 0.52</annotation></semantics></math>
+(~2.5 day median) - <strong>SARS</strong>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo>≈</mo><mn>2.0</mn></mrow><annotation encoding="application/x-tex">\mu_{gi} \approx 2.0</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>g</mi><mi>i</mi></mrow></msub><mo>≈</mo><mn>0.45</mn></mrow><annotation encoding="application/x-tex">\sigma_{gi} \approx 0.45</annotation></semantics></math>
+(~7.4 day median)</p>
 </div>
 <div class="section level3">
 <h3 id="incubation-period">Incubation Period<a class="anchor" aria-label="anchor" href="#incubation-period"></a>
 </h3>
 <p>Time from infection to symptom onset for index case
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><msub><mi>P</mi><mi>i</mi></msub><mo>∼</mo><mtext mathvariant="normal">LogNormal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo>=</mo><mn>1.63</mn><mo>,</mo><mi>σ</mi><mo>=</mo><mn>0.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">IP_i \sim \text{LogNormal}(\mu=1.63, \sigma=0.5)</annotation></semantics></math></p>
-<p>Median IP ≈ 5.1 days.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><msub><mi>P</mi><mi>i</mi></msub><mo>∼</mo><mtext mathvariant="normal">LogNormal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mrow><mi>i</mi><mi>p</mi></mrow></msub><mo>,</mo><msub><mi>σ</mi><mrow><mi>i</mi><mi>p</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">IP_i \sim \text{LogNormal}(\mu_{ip}, \sigma_{ip})</annotation></semantics></math></p>
+<p>Default parameters (COVID-19):
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mrow><mi>i</mi><mi>p</mi></mrow></msub><mo>=</mo><mn>1.63</mn></mrow><annotation encoding="application/x-tex">\mu_{ip}=1.63</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>i</mi><mi>p</mi></mrow></msub><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">\sigma_{ip}=0.5</annotation></semantics></math>,
+giving median IP ≈ 5.1 days.</p>
+<p>Configurable via <code>inc_meanlog</code> and <code>inc_sdlog</code>:
+- <strong>Influenza</strong>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mrow><mi>i</mi><mi>p</mi></mrow></msub><mo>≈</mo><mn>0.34</mn></mrow><annotation encoding="application/x-tex">\mu_{ip} \approx 0.34</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>i</mi><mi>p</mi></mrow></msub><mo>≈</mo><mn>0.42</mn></mrow><annotation encoding="application/x-tex">\sigma_{ip} \approx 0.42</annotation></semantics></math>
+(~1.4 day median) - <strong>SARS</strong>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mrow><mi>i</mi><mi>p</mi></mrow></msub><mo>≈</mo><mn>1.39</mn></mrow><annotation encoding="application/x-tex">\mu_{ip} \approx 1.39</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mrow><mi>i</mi><mi>p</mi></mrow></msub><mo>≈</mo><mn>0.51</mn></mrow><annotation encoding="application/x-tex">\sigma_{ip} \approx 0.51</annotation></semantics></math>
+(~4 day median)</p>
 </div>
 <div class="section level3">
 <h3 id="household-structure">Household Structure<a class="anchor" aria-label="anchor" href="#household-structure"></a>
 </h3>
 <p>Household size for index case
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
-in state
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><msub><mi>H</mi><mrow><mi>i</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>∼</mo><msub><mi>F</mi><mi>s</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">HH_{i,s} \sim F_s(h)</annotation></semantics></math></p>
+in region
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><msub><mi>H</mi><mrow><mi>i</mi><mo>,</mo><mi>r</mi></mrow></msub><mo>∼</mo><msub><mi>F</mi><mi>r</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">HH_{i,r} \sim F_r(h)</annotation></semantics></math></p>
 <p>where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>s</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">F_s(h)</annotation></semantics></math>
-is the empirical CDF of household sizes in state
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>,
-derived from Australian census data.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>r</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">F_r(h)</annotation></semantics></math>
+is the empirical CDF of household sizes in region
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>.</p>
+<p>Built-in data covers Australian states. Custom distributions can be
+provided via <code>hh_probs</code> for any region worldwide.</p>
 </div>
 <div class="section level3">
-<h3 id="vaccination-model">Vaccination Model<a class="anchor" aria-label="anchor" href="#vaccination-model"></a>
+<h3 id="vaccinationimmunity-model">Vaccination/Immunity Model<a class="anchor" aria-label="anchor" href="#vaccinationimmunity-model"></a>
 </h3>
 <p>Index case vaccination status:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>i</mi></msub><mo>∼</mo><mtext mathvariant="normal">Bernoulli</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mrow><mi>v</mi><mi>a</mi><mi>c</mi><mo>,</mo><mi>i</mi><mi>d</mi><mi>x</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">V_i \sim \text{Bernoulli}(p_{vac,idx})</annotation></semantics></math></p>
@@ -172,15 +195,17 @@ derived from Australian census data.</p>
 is the household vaccination correlation.</p>
 </div>
 <div class="section level3">
-<h3 id="vaccine-effectiveness">Vaccine Effectiveness<a class="anchor" aria-label="anchor" href="#vaccine-effectiveness"></a>
+<h3 id="vaccineimmunity-effectiveness">Vaccine/Immunity Effectiveness<a class="anchor" aria-label="anchor" href="#vaccineimmunity-effectiveness"></a>
 </h3>
 <p>Probability of infection given exposure:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="normal">infection</mtext><mo>∣</mo><mtext mathvariant="normal">exposure</mtext><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>V</mi><msub><mi>E</mi><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>n</mi><mi>s</mi></mrow></msub><mo>⋅</mo><msub><mi>V</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>⋅</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>V</mi><msub><mi>E</mi><mrow><mi>i</mi><mi>n</mi><mi>f</mi></mrow></msub><mo>⋅</mo><msub><mi>V</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">P(\text{infection} \mid \text{exposure}) = (1 - VE_{trans} \cdot V_i) \cdot (1 - VE_{inf} \cdot V_j)</annotation></semantics></math></p>
 <p>where: -
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><msub><mi>E</mi><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>n</mi><mi>s</mi></mrow></msub></mrow><annotation encoding="application/x-tex">VE_{trans}</annotation></semantics></math>
-= vaccine effectiveness against transmission (reduces infectiousness) -
+= effectiveness against transmission (reduces infectiousness) -
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><msub><mi>E</mi><mrow><mi>i</mi><mi>n</mi><mi>f</mi></mrow></msub></mrow><annotation encoding="application/x-tex">VE_{inf}</annotation></semantics></math>
-= vaccine effectiveness against infection (reduces susceptibility)</p>
+= effectiveness against infection (reduces susceptibility)</p>
+<p>These parameters can represent vaccine effectiveness, prior immunity,
+or other protective factors.</p>
 </div>
 </div>
 <div class="section level2">
@@ -203,9 +228,10 @@ Occur during quarantine to household members</li>
 Occur after quarantine ends</li>
 </ul>
 <p>A proportion of pre-isolation and post-quarantine infections are
-randomly reassigned to household (with probability 0.5), up to the
-household size limit. This accounts for uncertainty in exact infection
-timing.</p>
+randomly reassigned to household (with probability
+<code>hh_transmission_prob</code>, default 0.5), up to the household
+size limit. This accounts for uncertainty in exact infection timing and
+location.</p>
 </div>
 <div class="section level2">
 <h2 id="testing-model">Testing Model<a class="anchor" aria-label="anchor" href="#testing-model"></a>
@@ -229,12 +255,20 @@ is uniform random variable.</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
 is test day (relative to isolation start).</p>
 <p>Test sensitivity:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="normal">positive</mtext><mo>∣</mo><mtext mathvariant="normal">infected</mtext><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1.5</mn><mo>+</mo><mn>2.2</mn><msub><mi>s</mi><mi>t</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>s</mi><mi>t</mi></msub><mo>&lt;</mo><mn>0</mn><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> (pre-peak)</mtext></mrow></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1.5</mn><mo>−</mo><mn>0.22</mn><msub><mi>s</mi><mi>t</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>s</mi><mi>t</mi></msub><mo>≥</mo><mn>0</mn><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> (post-peak)</mtext></mrow></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">P(\text{positive} \mid \text{infected}, t) = \begin{cases}
-\frac{1}{1 + \exp(-(1.5 + 2.2s_t))} &amp; \text{if } s_t &lt; 0 \text{ (pre-peak)} \\
-\frac{1}{1 + \exp(-(1.5 - 0.22s_t))} &amp; \text{if } s_t \geq 0 \text{ (post-peak)}
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="normal">positive</mtext><mo>∣</mo><mtext mathvariant="normal">infected</mtext><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi></mrow></msub><mo>⋅</mo><msub><mi>s</mi><mi>t</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>s</mi><mi>t</mi></msub><mo>&lt;</mo><mn>0</mn><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> (pre-peak)</mtext></mrow></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>β</mi><mn>0</mn></msub><mo>−</mo><msub><mi>β</mi><mrow><mi>p</mi><mi>o</mi><mi>s</mi><mi>t</mi></mrow></msub><mo>⋅</mo><msub><mi>s</mi><mi>t</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>s</mi><mi>t</mi></msub><mo>≥</mo><mn>0</mn><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> (post-peak)</mtext></mrow></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">P(\text{positive} \mid \text{infected}, t) = \begin{cases}
+\frac{1}{1 + \exp(-(\beta_0 + \beta_{pre} \cdot s_t))} &amp; \text{if } s_t &lt; 0 \text{ (pre-peak)} \\
+\frac{1}{1 + \exp(-(\beta_0 - \beta_{post} \cdot s_t))} &amp; \text{if } s_t \geq 0 \text{ (post-peak)}
 \end{cases}</annotation></semantics></math></p>
-<p>Pre-peak: sensitivity increases as viral load rises Post-peak:
-sensitivity decreases as viral load declines</p>
+<p>Default parameters (calibrated to COVID-19 PCR): -
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mn>0</mn></msub><mo>=</mo><mn>1.5</mn></mrow><annotation encoding="application/x-tex">\beta_0 = 1.5</annotation></semantics></math>
+(intercept) -
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi></mrow></msub><mo>=</mo><mn>2.2</mn></mrow><annotation encoding="application/x-tex">\beta_{pre} = 2.2</annotation></semantics></math>
+(pre-peak slope) -
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mrow><mi>p</mi><mi>o</mi><mi>s</mi><mi>t</mi></mrow></msub><mo>=</mo><mn>0.22</mn></mrow><annotation encoding="application/x-tex">\beta_{post} = 0.22</annotation></semantics></math>
+(post-peak slope)</p>
+<p>These can be adjusted via <code>test_intercept</code>,
+<code>test_slope_prepeak</code>, and <code>test_slope_postpeak</code>
+for different test types (e.g., rapid antigen tests) or diseases.</p>
 </div>
 <div class="section level3">
 <h3 id="time-to-first-positive-test">Time to First Positive Test<a class="anchor" aria-label="anchor" href="#time-to-first-positive-test"></a>
@@ -279,9 +313,9 @@ if all negative)</li>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mrow><mi>p</mi><mi>a</mi><mi>s</mi><mi>s</mi><mi>i</mi><mi>v</mi><mi>e</mi><mo>,</mo><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>t</mi><mrow><mi>i</mi><mi>n</mi><mi>f</mi><mo>,</mo><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>D</mi><mrow><mi>p</mi><mi>a</mi><mi>s</mi><mi>s</mi><mi>i</mi><mi>v</mi><mi>e</mi></mrow></msub></mrow><annotation encoding="application/x-tex">T_{passive,ij} = t_{inf,ij} + D_{passive}</annotation></semantics></math></p>
 <p>where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>D</mi><mrow><mi>p</mi><mi>a</mi><mi>s</mi><mi>s</mi><mi>i</mi><mi>v</mi><mi>e</mi></mrow></msub><annotation encoding="application/x-tex">D_{passive}</annotation></semantics></math>
-is sampled from scenario-specific empirical distribution representing: -
-Time from infection to symptom onset - Time from symptoms to healthcare
-seeking - Time from healthcare seeking to confirmation</p>
+is sampled from scenario-specific distribution representing: - Time from
+infection to symptom onset - Time from symptoms to healthcare seeking -
+Time from healthcare seeking to confirmation</p>
 </div>
 <div class="section level3">
 <h3 id="active-detection-contact-tracing">Active Detection (Contact Tracing)<a class="anchor" aria-label="anchor" href="#active-detection-contact-tracing"></a>
@@ -293,6 +327,43 @@ seeking - Time from healthcare seeking to confirmation</p>
 is sampled from scenario-specific distribution representing: - Time to
 index case detection - Time to interview index case - Time to identify
 and notify close contacts - Time to quarantine close contacts</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="scenario-configuration">Scenario Configuration<a class="anchor" aria-label="anchor" href="#scenario-configuration"></a>
+</h2>
+<div class="section level3">
+<h3 id="built-in-scenarios">Built-in Scenarios<a class="anchor" aria-label="anchor" href="#built-in-scenarios"></a>
+</h3>
+<p>Three scenarios are provided, representing different public health
+system performance:</p>
+<ul>
+<li>
+<strong>optimal</strong>: Fast contact tracing and testing with
+minimal delays</li>
+<li>
+<strong>partial</strong>: Moderate delays in tracing and
+testing</li>
+<li>
+<strong>baseline</strong>: System baseline performance</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="custom-scenarios">Custom Scenarios<a class="anchor" aria-label="anchor" href="#custom-scenarios"></a>
+</h3>
+<p>You can create custom scenarios using
+<code><a href="../reference/create_scenario_config.html">create_scenario_config()</a></code>:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">custom</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_scenario_config.html">create_scenario_config</a></span><span class="op">(</span></span>
+<span>  name <span class="op">=</span> <span class="st">"my_scenario"</span>,</span>
+<span>  active_detection <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"lognormal"</span>, meanlog <span class="op">=</span> <span class="fl">1.0</span>, sdlog <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>  passive_detection <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"lognormal"</span>, meanlog <span class="op">=</span> <span class="fl">1.5</span>, sdlog <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span>,</span>
+<span>  test_turnaround <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"gamma"</span>, shape <span class="op">=</span> <span class="fl">2</span>, rate <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  interview_delay <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"exponential"</span>, rate <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  notification_delay <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"exponential"</span>, rate <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Supported distribution types: <code>lognormal</code>,
+<code>gamma</code>, <code>exponential</code>.</p>
 </div>
 </div>
 <div class="section level2">
@@ -316,37 +387,20 @@ transmission that would occur before detection</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mi>P</mi><mi>q</mi><mo>=</mo><mfrac><mn>1</mn><msub><mi>n</mi><mrow><mi>i</mi><mi>n</mi><mi>d</mi></mrow></msub></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mrow><mi>i</mi><mi>n</mi><mi>d</mi></mrow></msub></munderover><munder><mo>∑</mo><mrow><mi>j</mi><mo>∈</mo><mtext mathvariant="normal">undetected</mtext></mrow></munder><mi>I</mi><msub><mi>P</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">IPq = \frac{1}{n_{ind}} \sum_{i=1}^{n_{ind}} \sum_{j \in \text{undetected}} IP_{ij}</annotation></semantics></math></p>
 </div>
 <div class="section level2">
-<h2 id="scenario-specific-distributions">Scenario-Specific Distributions<a class="anchor" aria-label="anchor" href="#scenario-specific-distributions"></a>
-</h2>
-<p>Each TTIQ scenario has empirical distributions for:</p>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Time to isolation</strong> (active detection)</li>
-<li><strong>Time to passive detection</strong></li>
-<li><strong>Test turnaround time</strong></li>
-<li><strong>Interview delay</strong></li>
-<li><strong>Notification delay</strong></li>
-</ol>
-<p>These distributions are derived from: - <strong>optimal</strong>:
-Best-case assumptions (rapid tracing, fast testing) -
-<strong>partial</strong>: Moderate delays -
-<strong>current_nsw_case_init</strong>: NSW empirical data</p>
-<p>The distributions are stored as: - Sampled values (for turnaround
-times) - Cumulative probabilities (for inverse transform sampling)</p>
-</div>
-<div class="section level2">
 <h2 id="key-assumptions">Key Assumptions<a class="anchor" aria-label="anchor" href="#key-assumptions"></a>
 </h2>
 <div class="section level3">
 <h3 id="included-in-model">Included in Model<a class="anchor" aria-label="anchor" href="#included-in-model"></a>
 </h3>
 <ol style="list-style-type: decimal">
-<li>Household-correlated vaccination</li>
+<li>Household-correlated vaccination/immunity</li>
 <li>Overdispersed transmission (superspreading)</li>
 <li>Time-varying test sensitivity</li>
 <li>Scenario-specific detection delays</li>
-<li>State-specific household structures</li>
-<li>Vaccine effectiveness against transmission and infection</li>
+<li>Region-specific household structures</li>
+<li>Vaccine/immunity effectiveness against transmission and
+infection</li>
+<li>Configurable epidemiological distributions</li>
 </ol>
 </div>
 <div class="section level3">
@@ -354,10 +408,11 @@ times) - Cumulative probabilities (for inverse transform sampling)</p>
 </h3>
 <ol style="list-style-type: decimal">
 <li>Waning vaccine effectiveness over time</li>
-<li>Variant-specific parameters</li>
+<li>Variant-specific parameters (though these can be approximated by
+adjusting parameters)</li>
 <li>Age structure</li>
 <li>Compliance with quarantine</li>
-<li>Re-infection or prior immunity</li>
+<li>Re-infection or prior immunity (beyond binary status)</li>
 <li>Test specificity (false positives)</li>
 <li>Behavioral changes after testing</li>
 </ol>
@@ -366,21 +421,22 @@ times) - Cumulative probabilities (for inverse transform sampling)</p>
 <div class="section level2">
 <h2 id="model-validation">Model Validation<a class="anchor" aria-label="anchor" href="#model-validation"></a>
 </h2>
-<p>The model parameters are calibrated to:</p>
+<p>The default parameters are calibrated to:</p>
 <ul>
 <li>
-<strong>Generation interval</strong>: Australian COVID-19 contact
-tracing data</li>
+<strong>Generation interval</strong>: COVID-19 contact tracing
+data</li>
 <li>
 <strong>Incubation period</strong>: Systematic reviews of COVID-19
 studies</li>
 <li>
-<strong>Household sizes</strong>: Australian census data</li>
+<strong>Household sizes</strong>: Australian census data
+(built-in)</li>
 <li>
-<strong>Detection delays</strong>: NSW TTIQ system data</li>
+<strong>Detection delays</strong>: TTIQ system data</li>
 </ul>
-<p>Test sensitivity curves are based on published PCR sensitivity over
-the infection course.</p>
+<p>For other diseases, users should source appropriate epidemiological
+parameters from the literature.</p>
 </div>
 <div class="section level2">
 <h2 id="uncertainty-and-sensitivity">Uncertainty and Sensitivity<a class="anchor" aria-label="anchor" href="#uncertainty-and-sensitivity"></a>
@@ -401,6 +457,7 @@ simulation</li>
 <li>Run multiple simulations with different random seeds</li>
 <li>Vary key parameters (TP, k, VE) within plausible ranges</li>
 <li>Compare results across TTIQ scenarios</li>
+<li>Perform sensitivity analysis on disease-specific parameters</li>
 </ul>
 </div>
 <div class="section level2">
@@ -412,7 +469,7 @@ simulation</li>
 mixing within households</li>
 <li>
 <strong>No between-household heterogeneity</strong>: All households
-in a state use same size distribution</li>
+in a region use same size distribution</li>
 <li>
 <strong>Deterministic viral load trajectory</strong>: Peak time is
 random but shape is fixed</li>
@@ -428,15 +485,52 @@ distribution for all transmission pairs</li>
 </ol>
 </div>
 <div class="section level2">
+<h2 id="adapting-for-different-diseases">Adapting for Different Diseases<a class="anchor" aria-label="anchor" href="#adapting-for-different-diseases"></a>
+</h2>
+<p>To use the model for a disease other than COVID-19:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Literature review</strong>: Find estimates for incubation
+period and generation interval</li>
+<li>
+<strong>Convert to lognormal</strong>: Express as meanlog and sdlog
+parameters</li>
+<li>
+<strong>Adjust transmission</strong>: Set appropriate TP and k
+values</li>
+<li>
+<strong>Test sensitivity</strong>: Adjust logistic coefficients if
+test performance differs</li>
+<li>
+<strong>Household data</strong>: Provide region-specific household
+size distribution</li>
+<li>
+<strong>Scenario parameters</strong>: Create custom scenarios if
+TTIQ system differs</li>
+</ol>
+<div class="section level3">
+<h3 id="example-influenza-configuration">Example: Influenza Configuration<a class="anchor" aria-label="anchor" href="#example-influenza-configuration"></a>
+</h3>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/CQ.sim2.html">CQ.sim2</a></span><span class="op">(</span></span>
+<span>  <span class="va">...</span>,</span>
+<span>  inc_meanlog <span class="op">=</span> <span class="fl">0.34</span>, inc_sdlog <span class="op">=</span> <span class="fl">0.42</span>,  <span class="co"># ~1.4 day median</span></span>
+<span>  gi_meanlog <span class="op">=</span> <span class="fl">0.91</span>, gi_sdlog <span class="op">=</span> <span class="fl">0.52</span>,    <span class="co"># ~2.5 day median</span></span>
+<span>  TP <span class="op">=</span> <span class="fl">1.5</span>, k <span class="op">=</span> <span class="fl">0.5</span>,                      <span class="co"># Lower transmission</span></span>
+<span>  quarantine.duration <span class="op">=</span> <span class="fl">7</span>                  <span class="co"># Shorter isolation</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<p>Generation interval parameterization: &gt; [Reference to Australian
-COVID-19 study]</p>
-<p>Incubation period: &gt; [Reference to systematic review]</p>
+<p>Generation interval parameterization: &gt; See disease-specific
+literature for appropriate values</p>
+<p>Incubation period: &gt; See disease-specific systematic reviews</p>
 <p>Household size data: &gt; Australian Bureau of Statistics. Census
 2021.</p>
-<p>Test sensitivity modeling: &gt; [Reference to PCR sensitivity
-study]</p>
+<p>Test sensitivity modeling: &gt; Based on PCR sensitivity studies;
+adjust for other test types</p>
 </div>
 <div class="section level2">
 <h2 id="see-also">See Also<a class="anchor" aria-label="anchor" href="#see-also"></a>
@@ -447,8 +541,11 @@ study]</p>
 <li>
 <code><a href="../reference/CQ.sim2.html">?CQ.sim2</a></code> for function documentation</li>
 <li>
-<code>vignette("testing-strategies")</code> for strategy comparison
-methods</li>
+<code><a href="../articles/finding-optimal-strategies.html">vignette("finding-optimal-strategies")</a></code> for strategy
+comparison methods</li>
+<li>
+<code><a href="../reference/create_scenario_config.html">?create_scenario_config</a></code> for custom scenario
+creation</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

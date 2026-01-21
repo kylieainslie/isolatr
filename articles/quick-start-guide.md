@@ -16,10 +16,14 @@ library(ggplot2)
 
 ## Introduction
 
-The **isolatr** package provides tools for simulating COVID-19
-transmission during quarantine and evaluating different testing
-strategies. This quick start guide will walk you through the basic
-workflow.
+The **isolatr** package provides tools for simulating infectious disease
+transmission during isolation/quarantine and evaluating different
+testing strategies. While the default parameters are calibrated to
+COVID-19, the package can be used for any communicable disease by
+adjusting the epidemiological parameters.
+
+This quick start guide walks you through the basic workflow using
+COVID-19 as an example.
 
 ## Basic Workflow
 
@@ -35,11 +39,12 @@ The typical workflow consists of three steps:
 ### Step 1: Run the Simulation
 
 First, we simulate transmission from 1000 index cases (primary close
-contacts) under quarantine:
+contacts) under isolation:
 
 ``` r
 set.seed(42)  # For reproducibility
 
+# COVID-19 example with default epidemiological parameters
 sim_results <- CQ.sim2(
   n.ind = 1000,                  # Number of index cases to simulate
   TP = 3.0,                      # Transmission potential (mean secondary cases)
@@ -49,9 +54,9 @@ sim_results <- CQ.sim2(
   vacc.cor = 0.8,                # Household vaccination correlation
   VE.trans = 0.5,                # Vaccine effectiveness against transmission
   VE.inf = 0.7,                  # Vaccine effectiveness against infection
-  quarantine.duration = 14,      # Quarantine period (days)
+  quarantine.duration = 14,      # Isolation period (days)
   the.scenario = "optimal",      # TTIQ scenario
-  the.state = "NSW"              # Australian state
+  region = "NSW"                 # Region for household size distribution
 )
 ```
 
@@ -74,6 +79,7 @@ strategy_1 <- CQ.sim.test.times(
   CQ.sim.output = sim_results,
   n.ind = 1000,
   test.times = c(1, 3, 6),
+  TP = 3.0,
   VE.trans = 0.5,
   the.scenario = "optimal"
 )
@@ -104,6 +110,7 @@ results <- lapply(names(strategies), function(name) {
     CQ.sim.output = sim_results,
     n.ind = 1000,
     test.times = strategies[[name]],
+    TP = 3.0,
     VE.trans = 0.5,
     the.scenario = "optimal"
   )
@@ -113,7 +120,7 @@ results <- lapply(names(strategies), function(name) {
 })
 
 # Add no-testing baseline
-baseline <- CQ.sim.notest(sim_results, n.ind = 1000,
+baseline <- CQ.sim.notest(sim_results, n.ind = 1000, TP = 3.0,
                           VE.trans = 0.5, the.scenario = "optimal")
 baseline$strategy <- "No testing"
 baseline$n_tests <- 0
@@ -123,6 +130,49 @@ comparison <- bind_rows(results, baseline)
 print(comparison %>% arrange(IPq))
 ```
 
+## Using Custom Disease Parameters
+
+The package supports modeling any infectious disease by customizing the
+epidemiological parameters. Here’s an example using influenza-like
+parameters:
+
+``` r
+set.seed(42)
+
+# Influenza example with custom parameters
+flu_results <- CQ.sim2(
+  n.ind = 1000,
+  TP = 1.5,                      # Lower transmission potential
+  k = 0.5,                       # Less overdispersion than COVID-19
+  p.vac.idx = 0.4,
+  p.vac.sc = 0.4,
+  vacc.cor = 0.6,
+  VE.trans = 0.3,                # Lower vaccine effectiveness
+  VE.inf = 0.5,
+  quarantine.duration = 7,       # Shorter isolation period
+
+  # TTIQ scenario
+ the.scenario = "optimal",
+
+  # Custom household distribution (e.g., UK data)
+  hh_probs = c(0.28, 0.35, 0.18, 0.12, 0.05, 0.015, 0.004, 0.001),
+
+  # Influenza-specific distributions
+  inc_meanlog = 0.34,            # ~1.4 day median incubation
+  inc_sdlog = 0.42,
+  gi_meanlog = 0.91,             # ~2.5 day median generation interval
+  gi_sdlog = 0.52
+)
+```
+
+### Common Disease Parameters
+
+| Disease            | Incubation (meanlog, sdlog)  | Generation Interval (meanlog, sdlog) |
+|--------------------|------------------------------|--------------------------------------|
+| COVID-19 (default) | 1.63, 0.5 (~5.1 day median)  | 1.376, 0.567 (~3.96 day median)      |
+| Influenza          | 0.34, 0.42 (~1.4 day median) | 0.91, 0.52 (~2.5 day median)         |
+| SARS               | 1.39, 0.51 (~4 day median)   | 2.0, 0.45 (~7.4 day median)          |
+
 ## Understanding the Parameters
 
 ### Epidemiological Parameters
@@ -131,27 +181,54 @@ print(comparison %>% arrange(IPq))
   index case. Typical values: 1-5
 - **k** (Dispersion): Controls overdispersion. Lower values (0.1-0.3)
   indicate more superspreading
-- **VE.trans**: Vaccine effectiveness against transmission (0-1)
-- **VE.inf**: Vaccine effectiveness against infection (0-1)
+- **VE.trans**: Vaccine/immunity effectiveness against transmission
+  (0-1)
+- **VE.inf**: Vaccine/immunity effectiveness against infection (0-1)
+- **inc_meanlog, inc_sdlog**: Lognormal parameters for incubation period
+- **gi_meanlog, gi_sdlog**: Lognormal parameters for generation interval
 
 ### TTIQ Scenarios
 
-Three scenarios are available, representing different public health
-system performance:
+Three built-in scenarios represent different public health system
+performance:
 
 - **optimal**: Fast contact tracing, rapid testing, minimal delays
 - **partial**: Moderate delays in tracing and testing
-- **current_nsw_case_init**: NSW baseline performance
+- **baseline**: Baseline system performance (formerly
+  “current_nsw_case_init”)
 
 Each scenario has different distributions for: - Time to isolation
 (contact tracing speed) - Test turnaround time - Interview and
 notification delays
 
-### State-Specific Parameters
+You can also create custom scenarios:
 
-The `the.state` parameter determines the household size distribution.
-Valid options: - “NSW”, “VIC”, “QLD”, “SA”, “WA”, “TAS”, “NT”, “ACT” -
-Or full names: “New South Wales”, “Victoria”, etc.
+``` r
+# Create a custom scenario for a different context
+custom_scenario <- create_scenario_config(
+  name = "rapid_response",
+  active_detection = list(type = "lognormal", meanlog = 0.8, sdlog = 0.4),
+  passive_detection = list(type = "lognormal", meanlog = 1.2, sdlog = 0.5),
+  test_turnaround = list(type = "exponential", rate = 2),
+  interview_delay = list(type = "exponential", rate = 1),
+  notification_delay = list(type = "exponential", rate = 0.8)
+)
+```
+
+### Household Size Distribution
+
+The `region` parameter uses built-in Australian state data, or you can
+provide custom probabilities:
+
+``` r
+# Using built-in Australian data
+CQ.sim2(..., region = "NSW")
+CQ.sim2(..., region = "Victoria")
+
+# Using custom household distribution
+uk_probs <- c(0.28, 0.35, 0.18, 0.12, 0.05, 0.015, 0.004, 0.001)
+CQ.sim2(..., hh_probs = uk_probs)
+```
 
 ## Interpreting Results
 
@@ -174,21 +251,28 @@ detection.
 
 - See the **Model Details** vignette for in-depth explanation of the
   simulation model
-- See the **Testing Strategies** vignette for systematic strategy
-  comparison methods
-- See the **Advanced Usage** vignette for customization and extensions
+- See the **Finding Optimal Strategies** vignette for systematic
+  strategy comparison methods
 
 ## Quick Reference
 
 ``` r
-# Basic simulation
+# Basic simulation (COVID-19 defaults)
 sim <- CQ.sim2(n.ind, TP, k, p.vac.idx, p.vac.sc, vacc.cor,
                VE.trans, VE.inf, quarantine.duration,
-               the.scenario, the.state)
+               the.scenario, region)
+
+# Simulation with custom disease parameters
+sim <- CQ.sim2(n.ind, TP, k, p.vac.idx, p.vac.sc, vacc.cor,
+               VE.trans, VE.inf, quarantine.duration,
+               the.scenario,
+               hh_probs = custom_probs,
+               inc_meanlog = 0.34, inc_sdlog = 0.42,
+               gi_meanlog = 0.91, gi_sdlog = 0.52)
 
 # Evaluate testing
-results <- CQ.sim.test.times(sim, n.ind, test.times, VE.trans, the.scenario)
+results <- CQ.sim.test.times(sim, n.ind, test.times, TP, VE.trans, the.scenario)
 
 # Evaluate no testing
-baseline <- CQ.sim.notest(sim, n.ind, VE.trans, the.scenario)
+baseline <- CQ.sim.notest(sim, n.ind, TP, VE.trans, the.scenario)
 ```

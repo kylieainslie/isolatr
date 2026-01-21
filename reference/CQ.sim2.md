@@ -1,8 +1,10 @@
-# Community Quarantine Simulation for Primary Close Contacts
+# Isolation Simulation for Close Contacts
 
-Simulates COVID-19 transmission from index cases to secondary cases
-during quarantine, accounting for household structure, vaccination
-status, isolation timing, and testing/tracing scenarios.
+Simulates disease transmission from index cases to secondary cases
+during isolation, accounting for household structure, vaccination
+status, isolation timing, and testing/tracing scenarios. While defaults
+are calibrated to COVID-19, the function can be used for any
+communicable disease by adjusting the epidemiological parameters.
 
 ## Usage
 
@@ -18,7 +20,14 @@ CQ.sim2(
   VE.inf,
   quarantine.duration,
   the.scenario,
-  the.state = "NSW"
+  the.state = NULL,
+  region = "NSW",
+  hh_probs = NULL,
+  inc_meanlog = 1.63,
+  inc_sdlog = 0.5,
+  gi_meanlog = 1.376,
+  gi_sdlog = 0.567,
+  hh_transmission_prob = 0.5
 )
 ```
 
@@ -66,18 +75,53 @@ CQ.sim2(
 
 - quarantine.duration:
 
-  Numeric. Duration of quarantine period in days.
+  Numeric. Duration of quarantine/isolation period in days.
 
 - the.scenario:
 
   Character. TTIQ scenario name. Must be one of: "optimal", "partial",
-  or "current_nsw_case_init".
+  "baseline", or "current_nsw_case_init" (deprecated alias for
+  baseline).
 
 - the.state:
 
-  Character. Australian state or territory for household size
-  distribution. Default is "NSW". See
-  [`abbreviate_states`](abbreviate_states.md) for valid values.
+  Character. Deprecated, use `region` instead.
+
+- region:
+
+  Character. Region name for household size distribution. Default is
+  "NSW". See [`abbreviate_states`](abbreviate_states.md) for valid
+  Australian values. Ignored if `hh_probs` is provided.
+
+- hh_probs:
+
+  Numeric vector. Custom household size probabilities for sizes 1-8+.
+  Must sum to 1 and have length 8. If provided, `region` is ignored.
+
+- inc_meanlog:
+
+  Numeric. Mean of incubation period distribution on log scale. Default
+  is 1.63 (COVID-19, ~5.1 day median).
+
+- inc_sdlog:
+
+  Numeric. SD of incubation period distribution on log scale. Default is
+  0.5 (COVID-19).
+
+- gi_meanlog:
+
+  Numeric. Mean of generation interval distribution on log scale.
+  Default is 1.376 (COVID-19, ~3.96 day median).
+
+- gi_sdlog:
+
+  Numeric. SD of generation interval distribution on log scale. Default
+  is 0.567 (COVID-19).
+
+- hh_transmission_prob:
+
+  Numeric. Probability that a pre-isolation infection occurs within the
+  household (vs community). Default is 0.5.
 
 ## Value
 
@@ -128,8 +172,8 @@ individuals), containing the following columns:
 
 ## Details
 
-This function implements a stochastic simulation model of COVID-19
-transmission during quarantine. The model:
+This function implements a stochastic simulation model of disease
+transmission during isolation/quarantine. The model:
 
 1.  Samples individual-level characteristics (vaccination, incubation
     period, isolation time, household size) for each index case
@@ -138,7 +182,7 @@ transmission during quarantine. The model:
     distribution
 
 3.  Samples generation intervals (time between successive infections)
-    from a lognormal distribution calibrated to Australian COVID-19 data
+    from a lognormal distribution
 
 4.  Classifies infections as occurring before isolation, within
     household during quarantine, or post-quarantine
@@ -149,14 +193,15 @@ transmission during quarantine. The model:
 
 7.  Filters infections based on vaccine effectiveness
 
-The function uses the following epidemiological distributions:
+The function uses lognormal distributions for incubation period and
+generation interval. Default parameters are calibrated to COVID-19, but
+can be customized for other diseases:
 
-- Incubation period: Lognormal(μ=1.63, σ=0.5)
+- COVID-19 (default): inc_meanlog=1.63, gi_meanlog=1.376
 
-- Generation interval: Lognormal(μ=1.376, σ=0.567) - Australian COVID-19
-  baseline
+- Influenza: inc_meanlog≈0.34, gi_meanlog≈0.91
 
-- Number of secondary cases: Negative Binomial(size=k, μ=TP)
+- SARS: inc_meanlog≈1.39, gi_meanlog≈2.0
 
 ## Note
 
