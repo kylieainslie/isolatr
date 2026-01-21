@@ -1,0 +1,61 @@
+# CodeRabbit Configuration
+# https://docs.coderabbit.ai/guides/configure-coderabbit
+
+language: "en-US"
+
+reviews:
+  # Enable automatic reviews on PRs
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+      - master
+
+  # Review profile - chill is less strict, assertive is more thorough
+  profile: "chill"
+
+  # Request changes vs just commenting
+  request_changes_workflow: false
+
+  # High-level summary in PR comment
+  high_level_summary: true
+
+  # Generate poem (fun feature, can disable)
+  poem: false
+
+  # Review only changed files
+  review_scope: "changed"
+
+  # Path-specific instructions
+  path_instructions:
+    - path: "R/**/*.R"
+      instructions: |
+        This is an R package for infectious disease modeling.
+        Check for:
+        - Proper roxygen2 documentation
+        - Backward compatibility with existing function signatures
+        - Appropriate use of tidyverse functions
+        - Statistical/epidemiological correctness where applicable
+
+    - path: "vignettes/**/*.Rmd"
+      instructions: |
+        These are R package vignettes.
+        Check for:
+        - Clear explanations suitable for epidemiologists
+        - Working code examples (note: eval=FALSE may be intentional)
+        - Consistent formatting
+
+    - path: "tests/**/*.R"
+      instructions: |
+        These are testthat unit tests.
+        Check for test coverage and edge cases.
+
+chat:
+  auto_reply: true
+
+# Ignore certain paths from review
+path_filters:
+  - "!**/*.md"
+  - "!data-raw/**"
+  - "!man/**"
