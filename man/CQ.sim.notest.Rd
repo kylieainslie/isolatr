@@ -2,9 +2,18 @@
 % Please edit documentation in R/CQ_sim_notest.R
 \name{CQ.sim.notest}
 \alias{CQ.sim.notest}
-\title{Evaluate Quarantine Without Active Testing}
+\title{Evaluate Isolation Without Active Testing}
 \usage{
-CQ.sim.notest(CQ.sim.output, n.ind, VE.trans, the.scenario)
+CQ.sim.notest(
+  CQ.sim.output,
+  n.ind,
+  TP,
+  VE.trans,
+  the.scenario,
+  scenario_config = NULL,
+  gi_meanlog = 1.376,
+  gi_sdlog = 0.567
+)
 }
 \arguments{
 \item{CQ.sim.output}{Data frame. Output from \code{\link{CQ.sim2}}, containing
@@ -12,11 +21,18 @@ simulated secondary infection data.}
 
 \item{n.ind}{Integer. Number of index cases (must match the n.ind used in CQ.sim2).}
 
+\item{TP}{Numeric. Transmission potential - should match value used in CQ.sim2.}
+
 \item{VE.trans}{Numeric. Vaccine effectiveness against transmission (0-1).
 Must match the value used in \code{\link{CQ.sim2}}.}
 
-\item{the.scenario}{Character. TTIQ scenario name. Must be one of:
-"optimal", "partial", or "current_nsw_case_init".}
+\item{the.scenario}{Character. TTIQ scenario name: "optimal", "partial", or "baseline".}
+
+\item{scenario_config}{A scenario_config object. If provided, overrides the.scenario.}
+
+\item{gi_meanlog}{Numeric. Generation interval meanlog. Default 1.376 (COVID-19).}
+
+\item{gi_sdlog}{Numeric. Generation interval sdlog. Default 0.567 (COVID-19).}
 }
 \value{
 A single-row data frame with the following columns:
@@ -28,7 +44,7 @@ infections per index case that occur before passive detection}
 }
 }
 \description{
-Evaluates quarantine effectiveness when relying solely on passive detection
+Evaluates isolation effectiveness when relying solely on passive detection
 (symptom-based detection) without any active testing schedule. This serves as
 a baseline comparison for testing strategies.
 }
@@ -57,10 +73,11 @@ sim_results <- CQ.sim2(
   the.scenario = "optimal"
 )
 
-# Evaluate quarantine without testing
+# Evaluate isolation without testing
 baseline <- CQ.sim.notest(
   CQ.sim.output = sim_results,
   n.ind = 1000,
+  TP = 3.0,
   VE.trans = 0.5,
   the.scenario = "optimal"
 )

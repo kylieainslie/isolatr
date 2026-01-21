@@ -2,7 +2,7 @@
 % Please edit documentation in R/CQ_sim2.R
 \name{CQ.sim2}
 \alias{CQ.sim2}
-\title{Community Quarantine Simulation for Primary Close Contacts}
+\title{Isolation Simulation for Close Contacts}
 \usage{
 CQ.sim2(
   n.ind,
@@ -15,7 +15,14 @@ CQ.sim2(
   VE.inf,
   quarantine.duration,
   the.scenario,
-  the.state = "NSW"
+  the.state = NULL,
+  region = "NSW",
+  hh_probs = NULL,
+  inc_meanlog = 1.63,
+  inc_sdlog = 0.5,
+  gi_meanlog = 1.376,
+  gi_sdlog = 0.567,
+  hh_transmission_prob = 0.5
 )
 }
 \arguments{
@@ -42,13 +49,34 @@ Reduces probability that a vaccinated index case transmits infection.}
 \item{VE.inf}{Numeric. Vaccine effectiveness against infection (0-1).
 Reduces probability that a vaccinated secondary case becomes infected.}
 
-\item{quarantine.duration}{Numeric. Duration of quarantine period in days.}
+\item{quarantine.duration}{Numeric. Duration of quarantine/isolation period in days.}
 
 \item{the.scenario}{Character. TTIQ scenario name. Must be one of:
-"optimal", "partial", or "current_nsw_case_init".}
+"optimal", "partial", "baseline", or "current_nsw_case_init" (deprecated alias for baseline).}
 
-\item{the.state}{Character. Australian state or territory for household size
-distribution. Default is "NSW". See \code{\link{abbreviate_states}} for valid values.}
+\item{the.state}{Character. Deprecated, use \code{region} instead.}
+
+\item{region}{Character. Region name for household size distribution.
+Default is "NSW". See \code{\link{abbreviate_states}} for valid Australian values.
+Ignored if \code{hh_probs} is provided.}
+
+\item{hh_probs}{Numeric vector. Custom household size probabilities for sizes 1-8+.
+Must sum to 1 and have length 8. If provided, \code{region} is ignored.}
+
+\item{inc_meanlog}{Numeric. Mean of incubation period distribution on log scale.
+Default is 1.63 (COVID-19, ~5.1 day median).}
+
+\item{inc_sdlog}{Numeric. SD of incubation period distribution on log scale.
+Default is 0.5 (COVID-19).}
+
+\item{gi_meanlog}{Numeric. Mean of generation interval distribution on log scale.
+Default is 1.376 (COVID-19, ~3.96 day median).}
+
+\item{gi_sdlog}{Numeric. SD of generation interval distribution on log scale.
+Default is 0.567 (COVID-19).}
+
+\item{hh_transmission_prob}{Numeric. Probability that a pre-isolation infection
+occurs within the household (vs community). Default is 0.5.}
 }
 \value{
 A data frame with one row per secondary infection (among unprotected individuals),
@@ -68,19 +96,20 @@ containing the following columns:
 }
 }
 \description{
-Simulates COVID-19 transmission from index cases to secondary cases during quarantine,
+Simulates disease transmission from index cases to secondary cases during isolation,
 accounting for household structure, vaccination status, isolation timing, and
-testing/tracing scenarios.
+testing/tracing scenarios. While defaults are calibrated to COVID-19, the function
+can be used for any communicable disease by adjusting the epidemiological parameters.
 }
 \details{
-This function implements a stochastic simulation model of COVID-19 transmission
-during quarantine. The model:
+This function implements a stochastic simulation model of disease transmission
+during isolation/quarantine. The model:
 \enumerate{
 \item Samples individual-level characteristics (vaccination, incubation period,
 isolation time, household size) for each index case
 \item Samples the number of secondary cases from a negative binomial distribution
 \item Samples generation intervals (time between successive infections) from a
-lognormal distribution calibrated to Australian COVID-19 data
+lognormal distribution
 \item Classifies infections as occurring before isolation, within household
 during quarantine, or post-quarantine
 \item Models household-correlated vaccination status
@@ -88,11 +117,13 @@ during quarantine, or post-quarantine
 \item Filters infections based on vaccine effectiveness
 }
 
-The function uses the following epidemiological distributions:
+The function uses lognormal distributions for incubation period and generation
+interval. Default parameters are calibrated to COVID-19, but can be customized
+for other diseases:
 \itemize{
-\item Incubation period: Lognormal(μ=1.63, σ=0.5)
-\item Generation interval: Lognormal(μ=1.376, σ=0.567) - Australian COVID-19 baseline
-\item Number of secondary cases: Negative Binomial(size=k, μ=TP)
+\item COVID-19 (default): inc_meanlog=1.63, gi_meanlog=1.376
+\item Influenza: inc_meanlog≈0.34, gi_meanlog≈0.91
+\item SARS: inc_meanlog≈1.39, gi_meanlog≈2.0
 }
 }
 \note{

@@ -4,9 +4,9 @@
 \name{isolatr-package}
 \alias{isolatr}
 \alias{isolatr-package}
-\title{isolatr: Simulate and Evaluate Quarantine Testing Strategies for COVID-19}
+\title{isolatr: Simulate and Evaluate Isolation Testing Strategies for Infectious Diseases}
 \description{
-Provides tools for simulating COVID-19 transmission dynamics during quarantine and evaluating the effectiveness of different testing strategies. The package implements a stochastic simulation model that accounts for household structure, vaccination status, isolation timing, and various Test-Trace-Isolate-Quarantine (TTIQ) scenarios. It enables users to compare testing schedules and quantify their impact on reducing onwards transmission from quarantined individuals.
+Provides tools for simulating infectious disease transmission dynamics during isolation/quarantine and evaluating the effectiveness of different testing strategies. The package implements a stochastic simulation model that accounts for household structure, vaccination status, isolation timing, and various Test-Trace-Isolate-Quarantine (TTIQ) scenarios. While defaults are calibrated to COVID-19, all epidemiological parameters are configurable for other diseases. It enables users to compare testing schedules and quantify their impact on reducing onwards transmission from isolated individuals.
 }
 \seealso{
 Useful links:
@@ -17,7 +17,13 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Kylie Ainslie \email{k.ainslie@unimelb.edu.au} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Kylie Ainslie \email{kylie.ainslie@unimelb.edu.au}
+
+Authors:
+\itemize{
+  \item David Price (\href{https://orcid.org/0000-0003-0076-3123}{ORCID})
+  \item Joshua Ross
+}
 
 }
 \keyword{internal}

@@ -2,9 +2,22 @@
 % Please edit documentation in R/CQ_sim_test_times.R
 \name{CQ.sim.test.times}
 \alias{CQ.sim.test.times}
-\title{Evaluate Quarantine Testing Strategy}
+\title{Evaluate Isolation Testing Strategy}
 \usage{
-CQ.sim.test.times(CQ.sim.output, n.ind, test.times, VE.trans, the.scenario)
+CQ.sim.test.times(
+  CQ.sim.output,
+  n.ind,
+  test.times,
+  TP,
+  VE.trans,
+  the.scenario,
+  scenario_config = NULL,
+  gi_meanlog = 1.376,
+  gi_sdlog = 0.567,
+  test_intercept = 1.5,
+  test_slope_prepeak = 2.2,
+  test_slope_postpeak = 0.22
+)
 }
 \arguments{
 \item{CQ.sim.output}{Data frame. Output from \code{\link{CQ.sim2}}, containing
@@ -15,11 +28,24 @@ simulated secondary infection data.}
 \item{test.times}{Numeric vector. Days on which tests are administered (relative
 to start of quarantine). For example, c(1, 3, 6) means tests on days 1, 3, and 6.}
 
+\item{TP}{Numeric. Transmission potential - should match value used in CQ.sim2.}
+
 \item{VE.trans}{Numeric. Vaccine effectiveness against transmission (0-1).
 Must match the value used in \code{\link{CQ.sim2}}.}
 
-\item{the.scenario}{Character. TTIQ scenario name. Must be one of:
-"optimal", "partial", or "current_nsw_case_init".}
+\item{the.scenario}{Character. TTIQ scenario name: "optimal", "partial", or "baseline".}
+
+\item{scenario_config}{A scenario_config object. If provided, overrides the.scenario.}
+
+\item{gi_meanlog}{Numeric. Generation interval meanlog. Default 1.376 (COVID-19).}
+
+\item{gi_sdlog}{Numeric. Generation interval sdlog. Default 0.567 (COVID-19).}
+
+\item{test_intercept}{Numeric. Test sensitivity intercept. Default 1.5.}
+
+\item{test_slope_prepeak}{Numeric. Test sensitivity slope pre-peak. Default 2.2.}
+
+\item{test_slope_postpeak}{Numeric. Test sensitivity slope post-peak. Default 0.22.}
 }
 \value{
 A single-row data frame with the following columns:
@@ -31,12 +57,12 @@ infections per index case that occur before detection via testing or symptoms}
 }
 }
 \description{
-Evaluates the effectiveness of a specified testing schedule during quarantine by
+Evaluates the effectiveness of a specified testing schedule during isolation by
 calculating the infection potential and mean number of cases that would occur
 given the testing regime.
 }
 \details{
-This function models the impact of a testing schedule on transmission during quarantine.
+This function models the impact of a testing schedule on transmission during isolation.
 For each index case, it:
 \enumerate{
 \item Determines the time of first positive test using an internal testing function
@@ -73,6 +99,7 @@ evaluation <- CQ.sim.test.times(
   CQ.sim.output = sim_results,
   n.ind = 1000,
   test.times = c(1, 3, 6),
+  TP = 3.0,
   VE.trans = 0.5,
   the.scenario = "optimal"
 )

@@ -1,19 +1,20 @@
 Package: isolatr
-Title: Simulate and Evaluate Quarantine Testing Strategies for COVID-19
+Title: Simulate and Evaluate Isolation Testing Strategies for Infectious Diseases
 Version: 0.0.0.9000
 Authors@R: c(
-    person("Kylie", "Ainslie", , "kylie.ainslie@unimelb.edu.au", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID")),
+    person("Kylie", "Ainslie", , "kylie.ainslie@unimelb.edu.au", role = c("aut", "cre")),
     person("David", "Price", role = "aut",
            comment = c(ORCID = "0000-0003-0076-3123")),
     person("Joshua", "Ross", role = "aut")
     )
-Description: Provides tools for simulating COVID-19 transmission dynamics during
-    quarantine and evaluating the effectiveness of different testing strategies.
-    The package implements a stochastic simulation model that accounts for household
-    structure, vaccination status, isolation timing, and various Test-Trace-Isolate-Quarantine
-    (TTIQ) scenarios. It enables users to compare testing schedules and quantify their
-    impact on reducing onwards transmission from quarantined individuals.
+Description: Provides tools for simulating infectious disease transmission dynamics
+    during isolation/quarantine and evaluating the effectiveness of different testing
+    strategies. The package implements a stochastic simulation model that accounts for
+    household structure, vaccination status, isolation timing, and various
+    Test-Trace-Isolate-Quarantine (TTIQ) scenarios. While defaults are calibrated to
+    COVID-19, all epidemiological parameters are configurable for other diseases.
+    It enables users to compare testing schedules and quantify their impact on
+    reducing onwards transmission from isolated individuals.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
