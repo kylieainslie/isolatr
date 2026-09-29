@@ -30,6 +30,7 @@ real epidemiological data but contain no actual observational data.
 You can install the development version of isolatr from GitHub:
 
 ``` r
+
 # install.packages("devtools")
 devtools::install_github("kylieainslie/isolatr")
 ```
@@ -39,6 +40,7 @@ devtools::install_github("kylieainslie/isolatr")
 ### Basic Simulation
 
 ``` r
+
 library(isolatr)
 library(dplyr)
 
@@ -68,6 +70,7 @@ summary(sim_results$who)  # Distribution of infection types
 ### Evaluating a Testing Strategy
 
 ``` r
+
 # Evaluate testing on days 1, 3, and 6 of quarantine
 test_strategy <- CQ.sim.test.times(
   CQ.sim.output = sim_results,
@@ -86,6 +89,7 @@ print(test_strategy)
 ### Comparing Multiple Testing Strategies
 
 ``` r
+
 # Define testing strategies to compare
 strategies <- list(
   "Day 1, 3, 6" = c(1, 3, 6),
@@ -197,7 +201,7 @@ Lower IPq indicates more effective quarantine and testing strategies.
 If you use this package in your research, please cite:
 
 ``` R
-Ainslie, K.E.C. et al. (2024). isolatr: Simulate and Evaluate Quarantine
+Ainslie, K.E.C. et al. (2026). isolatr: Simulate and Evaluate Quarantine
 Testing Strategies for COVID-19. R package version 0.0.0.9000.
 https://github.com/kylieainslie/isolatr
 ```
@@ -215,7 +219,7 @@ https://github.com/kylieainslie/isolatr
 
 This package implements methods described in:
 
-> \[Ainslie et al. (2023). Title of paper. *Journal Name*. DOI link\]
+> \[paper in preparation\]
 
 For more on quarantine testing strategies, see:
 
@@ -233,7 +237,7 @@ MIT License - see LICENSE.md for details
 ------------------------------------------------------------------------
 
 **Author**: Kylie Ainslie (University of Melbourne) **Maintainer**:
-<k.ainslie@unimelb.edu.au>
+<kylie.ainslie@unimelb.edu.au>
 
 # Package index
 

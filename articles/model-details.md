@@ -35,49 +35,58 @@ secondary cases?**
 
 ### Transmission Model
 
-The number of secondary cases from index case $i$ follows a negative
+The number of secondary cases from index case $`i`$ follows a negative
 binomial distribution:
 
-$$n_{cases,i} \sim \text{NegBin}(k,TP)$$
+``` math
+n_{cases,i} \sim \text{NegBin}(k, TP)
+```
 
-where: - $TP$ = transmission potential (mean) - $k$ = dispersion
+where: - $`TP`$ = transmission potential (mean) - $`k`$ = dispersion
 parameter (smaller = more overdispersion/superspreading)
 
 ### Generation Interval
 
-Time from infection of index case to infection of secondary case $j$:
+Time from infection of index case to infection of secondary case $`j`$:
 
-$$GI_{ij} \sim \text{LogNormal}\left( \mu_{gi},\sigma_{gi} \right)$$
+``` math
+GI_{ij} \sim \text{LogNormal}(\mu_{gi}, \sigma_{gi})
+```
 
-Default parameters (COVID-19): $\mu_{gi} = 1.376$,
-$\sigma_{gi} = 0.567$, giving median GI ≈ 3.96 days.
+Default parameters (COVID-19): $`\mu_{gi}=1.376`$,
+$`\sigma_{gi}=0.567`$, giving median GI ≈ 3.96 days.
 
 These parameters are configurable via `gi_meanlog` and `gi_sdlog` for
-other diseases: - **Influenza**: $\mu_{gi} \approx 0.91$,
-$\sigma_{gi} \approx 0.52$ (~2.5 day median) - **SARS**:
-$\mu_{gi} \approx 2.0$, $\sigma_{gi} \approx 0.45$ (~7.4 day median)
+other diseases: - **Influenza**: $`\mu_{gi} \approx 0.91`$,
+$`\sigma_{gi} \approx 0.52`$ (~2.5 day median) - **SARS**:
+$`\mu_{gi} \approx 2.0`$, $`\sigma_{gi} \approx 0.45`$ (~7.4 day median)
 
 ### Incubation Period
 
-Time from infection to symptom onset for index case $i$:
+Time from infection to symptom onset for index case $`i`$:
 
-$$IP_{i} \sim \text{LogNormal}\left( \mu_{ip},\sigma_{ip} \right)$$
+``` math
+IP_i \sim \text{LogNormal}(\mu_{ip}, \sigma_{ip})
+```
 
-Default parameters (COVID-19): $\mu_{ip} = 1.63$, $\sigma_{ip} = 0.5$,
+Default parameters (COVID-19): $`\mu_{ip}=1.63`$, $`\sigma_{ip}=0.5`$,
 giving median IP ≈ 5.1 days.
 
 Configurable via `inc_meanlog` and `inc_sdlog`: - **Influenza**:
-$\mu_{ip} \approx 0.34$, $\sigma_{ip} \approx 0.42$ (~1.4 day median) -
-**SARS**: $\mu_{ip} \approx 1.39$, $\sigma_{ip} \approx 0.51$ (~4 day
-median)
+$`\mu_{ip} \approx 0.34`$, $`\sigma_{ip} \approx 0.42`$ (~1.4 day
+median) - **SARS**: $`\mu_{ip} \approx 1.39`$,
+$`\sigma_{ip} \approx 0.51`$ (~4 day median)
 
 ### Household Structure
 
-Household size for index case $i$ in region $r$:
+Household size for index case $`i`$ in region $`r`$:
 
-$$HH_{i,r} \sim F_{r}(h)$$
+``` math
+HH_{i,r} \sim F_r(h)
+```
 
-where $F_{r}(h)$ is the empirical CDF of household sizes in region $r$.
+where $`F_r(h)`$ is the empirical CDF of household sizes in region
+$`r`$.
 
 Built-in data covers Australian states. Custom distributions can be
 provided via `hh_probs` for any region worldwide.
@@ -86,26 +95,32 @@ provided via `hh_probs` for any region worldwide.
 
 Index case vaccination status:
 
-$$V_{i} \sim \text{Bernoulli}\left( p_{vac,idx} \right)$$
+``` math
+V_i \sim \text{Bernoulli}(p_{vac,idx})
+```
 
 Secondary case vaccination (household members):
 
-$$V_{ij} \sim \begin{cases}
-{\text{CorrelatedBinary}\left( V_{i},\rho \right)} & \text{if household member} \\
-{\text{Bernoulli}\left( p_{vac,sc} \right)} & \text{otherwise}
-\end{cases}$$
+``` math
+V_{ij} \sim \begin{cases}
+\text{CorrelatedBinary}(V_i, \rho) & \text{if household member} \\
+\text{Bernoulli}(p_{vac,sc}) & \text{otherwise}
+\end{cases}
+```
 
-where $\rho$ is the household vaccination correlation.
+where $`\rho`$ is the household vaccination correlation.
 
 ### Vaccine/Immunity Effectiveness
 
 Probability of infection given exposure:
 
-$$P\left( \text{infection} \mid \text{exposure} \right) = \left( 1 - VE_{trans} \cdot V_{i} \right) \cdot \left( 1 - VE_{inf} \cdot V_{j} \right)$$
+``` math
+P(\text{infection} \mid \text{exposure}) = (1 - VE_{trans} \cdot V_i) \cdot (1 - VE_{inf} \cdot V_j)
+```
 
-where: - $VE_{trans}$ = effectiveness against transmission (reduces
-infectiousness) - $VE_{inf}$ = effectiveness against infection (reduces
-susceptibility)
+where: - $`VE_{trans}`$ = effectiveness against transmission (reduces
+infectiousness) - $`VE_{inf}`$ = effectiveness against infection
+(reduces susceptibility)
 
 These parameters can represent vaccine effectiveness, prior immunity, or
 other protective factors.
@@ -115,11 +130,11 @@ other protective factors.
 Secondary infections are classified based on timing relative to
 isolation:
 
-- **Pre-isolation** ($t_{inf} < t_{iso}$): Occur before index case is
+- **Pre-isolation** ($`t_{inf} < t_{iso}`$): Occur before index case is
   quarantined
-- **Household** ($t_{iso} \leq t_{inf} < t_{iso} + Q_{duration}$): Occur
-  during quarantine to household members
-- **Post-quarantine** ($t_{inf} \geq t_{iso} + Q_{duration}$): Occur
+- **Household** ($`t_{iso} \leq t_{inf} < t_{iso} + Q_{duration}`$):
+  Occur during quarantine to household members
+- **Post-quarantine** ($`t_{inf} \geq t_{iso} + Q_{duration}`$): Occur
   after quarantine ends
 
 A proportion of pre-isolation and post-quarantine infections are
@@ -134,24 +149,31 @@ This accounts for uncertainty in exact infection timing and location.
 Test sensitivity varies with viral load, which changes over the
 infection course. We model sensitivity using a logistic function:
 
-Let $C$ = time of peak viral load (days before symptom onset):
-$$C = \min(IP,3.5) \cdot U(0,1)$$
+Let $`C`$ = time of peak viral load (days before symptom onset):
+``` math
+C = \min(IP, 3.5) \cdot U(0,1)
+```
 
-where $U(0,1)$ is uniform random variable.
+where $`U(0,1)`$ is uniform random variable.
 
-Time since infection at test $t$: $$s_{t} = t_{iso} + t - 1 - IP - C$$
+Time since infection at test $`t`$:
+``` math
+s_t = t_{iso} + t - 1 - IP - C
+```
 
-where $t$ is test day (relative to isolation start).
+where $`t`$ is test day (relative to isolation start).
 
 Test sensitivity:
-$$P\left( \text{positive} \mid \text{infected},t \right) = \begin{cases}
-\frac{1}{1 + \exp\left( - \left( \beta_{0} + \beta_{pre} \cdot s_{t} \right) \right)} & {{\text{if}\mspace{6mu}}s_{t} < 0{\mspace{6mu}\text{(pre-peak)}}} \\
-\frac{1}{1 + \exp\left( - \left( \beta_{0} - \beta_{post} \cdot s_{t} \right) \right)} & {{\text{if}\mspace{6mu}}s_{t} \geq 0{\mspace{6mu}\text{(post-peak)}}}
-\end{cases}$$
+``` math
+P(\text{positive} \mid \text{infected}, t) = \begin{cases}
+\frac{1}{1 + \exp(-(\beta_0 + \beta_{pre} \cdot s_t))} & \text{if } s_t < 0 \text{ (pre-peak)} \\
+\frac{1}{1 + \exp(-(\beta_0 - \beta_{post} \cdot s_t))} & \text{if } s_t \geq 0 \text{ (post-peak)}
+\end{cases}
+```
 
-Default parameters (calibrated to COVID-19 PCR): - $\beta_{0} = 1.5$
-(intercept) - $\beta_{pre} = 2.2$ (pre-peak slope) -
-$\beta_{post} = 0.22$ (post-peak slope)
+Default parameters (calibrated to COVID-19 PCR): - $`\beta_0 = 1.5`$
+(intercept) - $`\beta_{pre} = 2.2`$ (pre-peak slope) -
+$`\beta_{post} = 0.22`$ (post-peak slope)
 
 These can be adjusted via `test_intercept`, `test_slope_prepeak`, and
 `test_slope_postpeak` for different test types (e.g., rapid antigen
@@ -159,19 +181,17 @@ tests) or diseases.
 
 ### Time to First Positive Test
 
-For testing schedule
-$\mathbf{t} = \left( t_{1},t_{2},\ldots,t_{n} \right)$:
+For testing schedule $`\mathbf{t} = (t_1, t_2, \ldots, t_n)`$:
 
-1.  Calculate sensitivity $p_{i}$ at each test time $t_{i}$
-2.  Simulate test results:
-    $R_{i} \sim \text{Bernoulli}\left( p_{i} \right)$
-3.  First positive test: $t_{first} = \min\{ t_{i}:R_{i} = 1\}$ (or
-    $\infty$ if all negative)
-4.  Add turnaround time: $t_{first} + T_{TAT}$
-5.  Add other delays: $t_{first} + T_{TAT} + T_{other}$
+1.  Calculate sensitivity $`p_i`$ at each test time $`t_i`$
+2.  Simulate test results: $`R_i \sim \text{Bernoulli}(p_i)`$
+3.  First positive test: $`t_{first} = \min\{t_i : R_i = 1\}`$ (or
+    $`\infty`$ if all negative)
+4.  Add turnaround time: $`t_{first} + T_{TAT}`$
+5.  Add other delays: $`t_{first} + T_{TAT} + T_{other}`$
 
-where: - $T_{TAT}$ = test turnaround time (scenario-specific) -
-$T_{other}$ = interview + notification delays (scenario-specific)
+where: - $`T_{TAT}`$ = test turnaround time (scenario-specific) -
+$`T_{other}`$ = interview + notification delays (scenario-specific)
 
 ## Detection Model
 
@@ -179,9 +199,11 @@ $T_{other}$ = interview + notification delays (scenario-specific)
 
 Time to detection through symptoms (without active testing):
 
-$$T_{passive,ij} = t_{inf,ij} + D_{passive}$$
+``` math
+T_{passive,ij} = t_{inf,ij} + D_{passive}
+```
 
-where $D_{passive}$ is sampled from scenario-specific distribution
+where $`D_{passive}`$ is sampled from scenario-specific distribution
 representing: - Time from infection to symptom onset - Time from
 symptoms to healthcare seeking - Time from healthcare seeking to
 confirmation
@@ -190,9 +212,11 @@ confirmation
 
 Time from index case infection to isolation:
 
-$$T_{iso,i} = D_{active}$$
+``` math
+T_{iso,i} = D_{active}
+```
 
-where $D_{active}$ is sampled from scenario-specific distribution
+where $`D_{active}`$ is sampled from scenario-specific distribution
 representing: - Time to index case detection - Time to interview index
 case - Time to identify and notify close contacts - Time to quarantine
 close contacts
@@ -214,6 +238,7 @@ You can create custom scenarios using
 [`create_scenario_config()`](../reference/create_scenario_config.md):
 
 ``` r
+
 custom <- create_scenario_config(
   name = "my_scenario",
   active_detection = list(type = "lognormal", meanlog = 1.0, sdlog = 0.5),
@@ -228,19 +253,23 @@ Supported distribution types: `lognormal`, `gamma`, `exponential`.
 
 ## Infection Potential Calculation
 
-For each undetected secondary infection $j$ from index case $i$, the
+For each undetected secondary infection $`j`$ from index case $`i`$, the
 infection potential is:
 
-$$IP_{ij} = F_{GI}\left( \min\left( t_{detect,ij},t_{passive,ij} \right) - t_{inf,ij} \right) \cdot TP \cdot \left( 1 - VE_{trans} \cdot V_{j} \right)$$
+``` math
+IP_{ij} = F_{GI}(\min(t_{detect,ij}, t_{passive,ij}) - t_{inf,ij}) \cdot TP \cdot (1 - VE_{trans} \cdot V_j)
+```
 
-where: - $F_{GI}$ = CDF of generation interval distribution -
-$t_{detect,ij}$ = time of detection (via testing or symptoms) -
-$t_{inf,ij}$ = time of infection - The CDF term represents the
+where: - $`F_{GI}`$ = CDF of generation interval distribution -
+$`t_{detect,ij}`$ = time of detection (via testing or symptoms) -
+$`t_{inf,ij}`$ = time of infection - The CDF term represents the
 proportion of onwards transmission that would occur before detection
 
 Total Infection Potential in Quarantine (IPq):
 
-$$IPq = \frac{1}{n_{ind}}\sum\limits_{i = 1}^{n_{ind}}\sum\limits_{j \in \text{undetected}}IP_{ij}$$
+``` math
+IPq = \frac{1}{n_{ind}} \sum_{i=1}^{n_{ind}} \sum_{j \in \text{undetected}} IP_{ij}
+```
 
 ## Key Assumptions
 
@@ -325,6 +354,7 @@ To use the model for a disease other than COVID-19:
 ### Example: Influenza Configuration
 
 ``` r
+
 CQ.sim2(
   ...,
   inc_meanlog = 0.34, inc_sdlog = 0.42,  # ~1.4 day median

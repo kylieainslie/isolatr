@@ -1,6 +1,7 @@
 # Quick Start Guide
 
 ``` r
+
 library(isolatr)
 library(dplyr)
 #> 
@@ -42,6 +43,7 @@ First, we simulate transmission from 1000 index cases (primary close
 contacts) under isolation:
 
 ``` r
+
 set.seed(42)  # For reproducibility
 
 # COVID-19 example with default epidemiological parameters
@@ -63,6 +65,7 @@ sim_results <- CQ.sim2(
 The output is a data frame with one row per secondary infection:
 
 ``` r
+
 head(sim_results)
 
 # Check infection types
@@ -74,6 +77,7 @@ table(sim_results$who)
 Now we can evaluate how effective a specific testing schedule would be:
 
 ``` r
+
 # Test on days 1, 3, and 6
 strategy_1 <- CQ.sim.test.times(
   CQ.sim.output = sim_results,
@@ -96,6 +100,7 @@ undetected cases per index case
 Let’s compare several testing strategies:
 
 ``` r
+
 # Define strategies
 strategies <- list(
   "Days 1,3,6" = c(1, 3, 6),
@@ -137,6 +142,7 @@ epidemiological parameters. Here’s an example using influenza-like
 parameters:
 
 ``` r
+
 set.seed(42)
 
 # Influenza example with custom parameters
@@ -167,11 +173,11 @@ flu_results <- CQ.sim2(
 
 ### Common Disease Parameters
 
-| Disease            | Incubation (meanlog, sdlog)  | Generation Interval (meanlog, sdlog) |
-|--------------------|------------------------------|--------------------------------------|
-| COVID-19 (default) | 1.63, 0.5 (~5.1 day median)  | 1.376, 0.567 (~3.96 day median)      |
-| Influenza          | 0.34, 0.42 (~1.4 day median) | 0.91, 0.52 (~2.5 day median)         |
-| SARS               | 1.39, 0.51 (~4 day median)   | 2.0, 0.45 (~7.4 day median)          |
+| Disease | Incubation (meanlog, sdlog) | Generation Interval (meanlog, sdlog) |
+|----|----|----|
+| COVID-19 (default) | 1.63, 0.5 (~5.1 day median) | 1.376, 0.567 (~3.96 day median) |
+| Influenza | 0.34, 0.42 (~1.4 day median) | 0.91, 0.52 (~2.5 day median) |
+| SARS | 1.39, 0.51 (~4 day median) | 2.0, 0.45 (~7.4 day median) |
 
 ## Understanding the Parameters
 
@@ -204,6 +210,7 @@ notification delays
 You can also create custom scenarios:
 
 ``` r
+
 # Create a custom scenario for a different context
 custom_scenario <- create_scenario_config(
   name = "rapid_response",
@@ -221,6 +228,7 @@ The `region` parameter uses built-in Australian state data, or you can
 provide custom probabilities:
 
 ``` r
+
 # Using built-in Australian data
 CQ.sim2(..., region = "NSW")
 CQ.sim2(..., region = "Victoria")
@@ -257,6 +265,7 @@ detection.
 ## Quick Reference
 
 ``` r
+
 # Basic simulation (COVID-19 defaults)
 sim <- CQ.sim2(n.ind, TP, k, p.vac.idx, p.vac.sc, vacc.cor,
                VE.trans, VE.inf, quarantine.duration,

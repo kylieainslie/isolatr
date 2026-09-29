@@ -21,6 +21,7 @@ transmission reduction.
 ## Setup
 
 ``` r
+
 library(isolatr)
 library(dplyr)
 library(tidyr)
@@ -36,6 +37,7 @@ example uses COVID-19 parameters, but these can be adjusted for other
 diseases.
 
 ``` r
+
 # Epidemiological parameters (COVID-19 example)
 n.ind <- 100000  # Large sample for stable estimates
 TP <- 1.2        # Transmission potential
@@ -73,6 +75,7 @@ To evaluate testing strategies for influenza or another disease, modify
 the parameters:
 
 ``` r
+
 # Influenza example
 TP <- 1.5
 k <- 0.5
@@ -89,6 +92,7 @@ Use `test.designs()` to systematically generate all valid testing
 schedules:
 
 ``` r
+
 # Maximum possible test days
 max_days <- max(quarantine.durations)
 
@@ -140,6 +144,7 @@ Now we loop over isolation durations and TTIQ scenarios, evaluating all
 testing schedules in parallel:
 
 ``` r
+
 results_list <- list()
 
 for (hq.d in quarantine.durations) {
@@ -224,6 +229,7 @@ all_results <- bind_rows(results_list)
 ## Process and Analyze Results
 
 ``` r
+
 # Clean up column names
 colnames_base <- c("t1", "t2", "t3")
 if (ncol(all.times) <= 3) {
@@ -260,6 +266,7 @@ print(optimal_schedules)
 ### 1. Optimal Strategies Bar Plot
 
 ``` r
+
 optimal_schedules %>%
   mutate(
     scenario = factor(
@@ -296,6 +303,7 @@ optimal_schedules %>%
 For each number of tests, visualize how test timing affects IPq:
 
 ``` r
+
 # Identify optimal schedules for highlighting
 the.opt <- all_results %>%
   mutate(id = row_number()) %>%
@@ -360,6 +368,7 @@ all_results %>%
 Identify schedules that perform within 2% of optimal:
 
 ``` r
+
 near_optimal <- all_results %>%
   group_by(scenario, q.duration, n.tests) %>%
   arrange(IPq) %>%
@@ -405,6 +414,7 @@ You can extend this framework to compare alternative policies, such as
 differential isolation by vaccination status:
 
 ``` r
+
 # Example: 7-day isolation for vaccinated, 14-day for unvaccinated
 # This requires running separate simulations for each group
 # See inst/examples/ for full implementation
@@ -413,6 +423,7 @@ differential isolation by vaccination status:
 ## Exporting Results
 
 ``` r
+
 # Save optimal schedules
 write.csv(
   optimal_schedules,
@@ -458,6 +469,7 @@ The key considerations when adapting this analysis for other diseases:
 ### Example: Influenza Analysis
 
 ``` r
+
 # Run the same workflow with influenza parameters
 # Key changes:
 # - Shorter isolation periods (5-7 days)
