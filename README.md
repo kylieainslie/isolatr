@@ -210,7 +210,7 @@ Lower IPq indicates more effective quarantine and testing strategies.
 
 If you use this package in your research, please cite:
 
-    Ainslie, K.E.C. et al. (2024). isolatr: Simulate and Evaluate Quarantine
+    Ainslie, K.E.C. et al. (2026). isolatr: Simulate and Evaluate Quarantine
     Testing Strategies for COVID-19. R package version 0.0.0.9000.
     https://github.com/kylieainslie/isolatr
 
@@ -226,7 +226,7 @@ If you use this package in your research, please cite:
 
 This package implements methods described in:
 
-> \[Ainslie et al. (2023). Title of paper. *Journal Name*. DOI link\]
+> \[paper in preparation\]
 
 For more on quarantine testing strategies, see:
 
@@ -244,4 +244,4 @@ MIT License - see LICENSE.md for details
 ------------------------------------------------------------------------
 
 **Author**: Kylie Ainslie (University of Melbourne) **Maintainer**:
-<k.ainslie@unimelb.edu.au>
+<kylie.ainslie@unimelb.edu.au>
